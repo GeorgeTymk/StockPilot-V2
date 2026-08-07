@@ -1,0 +1,722 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+
+<?import javafx.scene.chart.LineChart?>
+
+<?import javafx.fxml.FXMLLoader?>
+
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+
+  
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<StackPane xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="com.stockpilot.controller.DashboardController">
+           
+
+
+    <stylesheets>
+    <URL value="@../css/stockpilot.css"/>
+    <URL value="@../css/dashboard.css"/>
+</stylesheets>
+
+
+<!-- BACKGROUND -->
+
+<AnchorPane styleClass="dashboard-background"
+            prefWidth="1200"
+            prefHeight="700">
+
+    <!-- MAIN APP FRAME -->
+
+<HBox spacing="0"
+      alignment="TOP_LEFT"
+      AnchorPane.topAnchor="30.0"
+      AnchorPane.bottomAnchor="30.0"
+      AnchorPane.leftAnchor="30.0"
+      AnchorPane.rightAnchor="30.0">
+
+
+    <!-- SIDEBAR -->
+
+
+
+
+    <!-- FLOATING WHITE DASHBOARD -->
+
+    <ScrollPane HBox.hgrow="ALWAYS"
+                fitToWidth="true"
+                fitToHeight="true"
+                styleClass="dashboard-scroll">
+
+            <VBox fillWidth="true"
+            HBox.hgrow="ALWAYS"
+      spacing="15"
+      styleClass="floating-dashboard">
+      
+
+
+            <padding>
+                <Insets top="30"
+                        right="35"
+                        bottom="30"
+                        left="35"/>
+            </padding>
+
+
+
+            <!-- HEADER -->
+
+
+            <!-- HEADER -->
+
+<HBox alignment="CENTER_LEFT"
+      spacing="18"
+      prefHeight="90"
+      minHeight="90"
+      styleClass="dashboard-header">
+
+    <!-- Left Side -->
+
+    <VBox HBox.hgrow="ALWAYS"
+      alignment="CENTER_LEFT"
+      spacing="6">
+
+        <Label text="Dashboard"
+               styleClass="page-title"/>
+
+        <Label text="Restaurant Inventory Management System"
+               styleClass="page-subtitle"/>
+
+    </VBox>
+
+    <!-- Search -->
+
+    <TextField promptText="Search inventory, recipes..."
+           styleClass="dashboard-search"/>
+
+    <Button text="+ New Sale"
+        styleClass="header-action-button"
+        onAction="#openSellRecipe"/>
+
+    <!-- Notifications -->
+
+    <Button
+        styleClass="notification-button">
+
+        <graphic>
+
+    <ImageView fitWidth="20"
+               fitHeight="20">
+
+        <image>
+            <Image url="@../icons/notification.png"/>
+        </image>
+
+    </ImageView>
+
+</graphic>
+
+    </Button>
+
+    <!-- Profile -->
+
+    <VBox spacing="2">
+
+    <Label text="Admin"
+           styleClass="header-user"/>
+
+    <Label text="Manager"
+           styleClass="header-role"/>
+
+</VBox>
+
+</HBox>
+
+
+
+            <!-- CONTENT WILL BE ADDED IN PATCH 2 -->
+
+
+            <!-- ANALYTICS SECTION -->
+
+
+<!-- ===================== -->
+<!-- DASHBOARD STATISTICS -->
+<!-- ===================== -->
+
+<VBox spacing="22">
+
+
+    <!-- TOP ROW -->
+
+    <GridPane hgap="22"
+              vgap="22">
+
+
+        <columnConstraints>
+
+            <ColumnConstraints percentWidth="25"/>
+
+            <ColumnConstraints percentWidth="25"/>
+
+            <ColumnConstraints percentWidth="25"/>
+
+            <ColumnConstraints percentWidth="25"/>
+
+        </columnConstraints>
+
+
+
+
+        <!-- TOTAL SALES -->
+
+
+        <VBox GridPane.columnIndex="0"
+              styleClass="dashboard-stat-card">
+
+
+            <HBox spacing="15"
+                  alignment="CENTER_LEFT">
+
+
+                <StackPane>
+
+                     <FontIcon iconLiteral="fas-money-bill"
+          iconSize="20"
+          styleClass="card-icon"/>
+
+                </StackPane>
+
+
+                <Label text="Total Sales"
+                       styleClass="stat-heading"/>
+
+
+            </HBox>
+
+
+
+            <Label fx:id="totalSalesLabel"
+                   text="MK 0.00"
+                   styleClass="stat-value"
+                   wrapText="true"/>
+
+
+
+            <HBox spacing="5">
+
+                <Label fx:id="totalSalesTrendLabel"
+                       text="+0.0%"
+                       styleClass="trend-positive"/>
+
+
+                <Label text="from last month"
+                       styleClass="trend-text"/>
+
+            </HBox>
+
+
+
+        </VBox>
+
+
+
+
+
+
+        <!-- ORDERS -->
+
+
+        <VBox GridPane.columnIndex="1"
+              styleClass="dashboard-stat-card">
+
+
+            <HBox spacing="15"
+                  alignment="CENTER_LEFT">
+
+
+                <StackPane>
+
+                    <FontIcon iconLiteral="fas-shopping-cart"
+          iconSize="20"
+          styleClass="card-icon"/>
+
+                </StackPane>
+
+
+
+                <Label text="Orders"
+                       styleClass="stat-heading"/>
+
+
+            </HBox>
+
+
+
+
+            <Label fx:id="totalOrdersLabel"
+                   text="0"
+                   styleClass="stat-value"/>
+
+
+
+
+            <HBox spacing="5">
+
+
+                <Label fx:id="ordersTrendLabel"
+                       text="+0.0%"
+                       styleClass="trend-positive"/>
+
+
+                <Label text="from last month"
+                       styleClass="trend-text"/>
+
+
+            </HBox>
+
+
+
+
+        </VBox>
+
+
+
+
+
+
+        <!-- TODAY SALES -->
+
+
+        <VBox GridPane.columnIndex="2"
+              styleClass="dashboard-stat-card">
+
+
+            <HBox spacing="15"
+                  alignment="CENTER_LEFT">
+
+
+                <StackPane>
+
+
+                    <FontIcon iconLiteral="fas-calendar"
+          iconSize="20"
+          styleClass="card-icon"/>
+
+
+                </StackPane>
+
+
+
+                <Label text="Today's Sales"
+                       styleClass="stat-heading"/>
+
+
+            </HBox>
+
+
+
+
+            <Label fx:id="todaySalesLabel"
+                   text="MK 0.00"
+                   styleClass="stat-value"
+                   wrapText="true"/>
+
+
+
+
+            <HBox spacing="5">
+
+
+                <Label fx:id="todaySalesTrendLabel"
+                       text="+0.0%"
+                       styleClass="trend-positive"/>
+
+
+                <Label text="from last month"
+                       styleClass="trend-text"/>
+
+
+            </HBox>
+
+
+
+        </VBox>
+
+
+
+
+
+
+
+        <!-- BEST SELLER -->
+
+
+        <VBox GridPane.columnIndex="3"
+              styleClass="dashboard-stat-card">
+
+
+            <HBox spacing="15"
+                  alignment="CENTER_LEFT">
+
+
+                <StackPane>
+
+
+                    <FontIcon iconLiteral="fas-star"
+          iconSize="20"
+          styleClass="card-icon"/>
+
+
+                </StackPane>
+
+
+
+                <Label text="Best Seller"
+                       styleClass="stat-heading"/>
+
+
+            </HBox>
+
+
+
+
+            <Label fx:id="bestSellerLabel"
+                   text="-"
+                   styleClass="stat-value-small"/>
+
+
+
+            <Label text="Most Sold Recipe"
+                   styleClass="trend-text"/>
+
+
+
+        </VBox>
+
+
+
+
+    </GridPane>
+
+
+
+
+
+
+
+    <!-- SECOND ROW -->
+
+
+    <GridPane hgap="22"
+              vgap="22">
+
+
+
+        <columnConstraints>
+
+
+            <ColumnConstraints percentWidth="33.33"/>
+
+
+            <ColumnConstraints percentWidth="33.33"/>
+
+
+            <ColumnConstraints percentWidth="33.34"/>
+
+
+        </columnConstraints>
+
+
+
+
+
+
+
+        <!-- LOW STOCK -->
+
+
+        <VBox GridPane.columnIndex="0"
+              styleClass="dashboard-stat-card">
+
+
+
+            <HBox spacing="15"
+                  alignment="CENTER_LEFT">
+
+
+
+                <FontIcon iconLiteral="fas-exclamation-triangle"
+          iconSize="20"
+          styleClass="low-stock-icon"/>
+
+
+
+                <Label text="Low Stock"
+                       styleClass="stat-heading"/>
+
+
+            </HBox>
+
+
+
+
+
+            <Label fx:id="lowStockLabel"
+                   text="0"
+                   styleClass="stat-value"/>
+
+
+
+
+            <Label text="Items Need Restocking"
+                   styleClass="trend-text"/>
+
+
+
+        </VBox>
+
+
+
+
+
+
+
+
+        <!-- INGREDIENTS -->
+
+
+        <VBox GridPane.columnIndex="1"
+              styleClass="dashboard-stat-card">
+
+
+
+            <HBox spacing="15"
+                  alignment="CENTER_LEFT">
+
+
+
+              <FontIcon iconLiteral="fas-cube"
+          iconSize="20"
+          styleClass="card-icon"/>
+
+
+
+                <Label text="Ingredients"
+                       styleClass="stat-heading"/>
+
+
+
+            </HBox>
+
+
+
+
+
+            <Label fx:id="totalIngredientsLabel"
+                   text="0"
+                   styleClass="stat-value"/>
+
+
+
+
+            <Label text="Registered Items"
+                   styleClass="trend-text"/>
+
+
+
+        </VBox>
+
+
+
+
+
+
+
+        <!-- OUT OF STOCK -->
+
+
+        <VBox GridPane.columnIndex="2"
+              styleClass="dashboard-stat-card">
+
+
+
+            <HBox spacing="15"
+                  alignment="CENTER_LEFT">
+
+
+
+               <FontIcon iconLiteral="fas-times-circle"
+          iconSize="20"
+          styleClass="out-stock-icon"/>
+
+
+
+
+                <Label text="Out of Stock"
+                       styleClass="stat-heading"/>
+
+
+
+            </HBox>
+
+
+
+
+
+            <Label fx:id="outOfStockLabel"
+                   text="0"
+                   styleClass="stat-value"/>
+
+
+
+
+            <Label text="Requires Immediate Action"
+                   styleClass="trend-text"/>
+
+
+
+
+        </VBox>
+
+
+
+
+    </GridPane>
+
+
+
+
+</VBox>
+
+
+
+
+<!-- Quick Actions -->
+
+<HBox spacing="20"
+      alignment="CENTER_LEFT">
+
+    <Button text="+ New Sale"
+            styleClass="green-action-button"
+            onAction="#openSellRecipe"/>
+
+    <Button text="+ Ingredients"
+            styleClass="green-action-button"
+            onAction="#openIngredients"/>
+
+    <Button text="+ Recipe"
+            styleClass="green-action-button"
+            onAction="#openRecipes"/>
+
+</HBox>
+
+<HBox spacing="20"
+      VBox.vgrow="ALWAYS">
+
+    <!-- Sales Chart -->
+
+    <VBox HBox.hgrow="ALWAYS"
+          prefHeight="340"
+          styleClass="chart-card">
+
+        <Label text="Sales Overview"
+               styleClass="chart-title"/>
+
+        <LineChart fx:id="salesChart"
+           createSymbols="true"
+           animated="true"
+           legendVisible="false"
+           styleClass="chart-card">
+
+            <xAxis>
+                <CategoryAxis label="Date"/>
+            </xAxis>
+
+            <yAxis>
+                <NumberAxis label="Sales (MK)"/>
+            </yAxis>
+
+        </LineChart>
+
+    </VBox>
+
+    <!-- Inventory Chart -->
+
+    <VBox prefWidth="320"
+          styleClass="chart-card">
+
+        <Label text="Inventory Status"
+               styleClass="chart-title"/>
+
+        <PieChart/>
+
+    </VBox>
+
+</HBox>
+
+
+
+
+
+
+<!-- RECENT ACTIVITY SECTION -->
+
+
+<VBox spacing="15"
+      styleClass="activity-panel">
+
+
+
+    <HBox alignment="CENTER_LEFT">
+
+
+        <Label text="Recent Activity"
+               styleClass="section-title"/>
+
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+
+        <Button text="View All"
+                styleClass="small-action-button"/>
+
+
+    </HBox>
+
+
+
+
+
+<ListView
+    fx:id="activityListView"
+    prefHeight="260"
+    prefWidth="650"
+    minHeight="260"
+    styleClass="activity-list"/>
+
+
+
+</VBox>   <!-- closes Recent Activity -->
+
+</VBox>   <!-- closes Floating Dashboard -->
+
+</ScrollPane>
+
+</HBox>
+
+</AnchorPane>
+
+</StackPane>

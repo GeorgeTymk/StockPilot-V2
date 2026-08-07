@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.stockpilot.controller.AboutController"
+      alignment="CENTER"
+      styleClass="about-wrapper">
+
+
+    <VBox spacing="12"
+          alignment="CENTER"
+          styleClass="about-card">
+
+
+        <padding>
+            <Insets top="35"
+                    right="45"
+                    bottom="35"
+                    left="45"/>
+        </padding>
+
+
+        <Label text="StockPilot"
+               styleClass="about-title"/>
+
+
+        <Label text="Restaurant Inventory Management System"
+               styleClass="about-subtitle"/>
+
+
+        <Label fx:id="versionLabel"
+               styleClass="about-info"/>
+
+
+        <Label fx:id="buildLabel"
+               styleClass="about-info"/>
+
+
+        <Label text="© 2026"
+               styleClass="about-info"/>
+
+
+        <VBox spacing="4"
+              alignment="CENTER"
+              styleClass="developer-box">
+
+
+            <Label text="Developed by"
+                   styleClass="developer-label"/>
+
+
+            <Label text="George Tymk | Phoenix Systems"
+                   styleClass="developer-name"/>
+
+
+        </VBox>
+
+
+    </VBox>
+
+
+</VBox>

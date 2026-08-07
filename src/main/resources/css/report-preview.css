@@ -1,0 +1,431 @@
+/* =====================================================
+   BACKGROUND OVERLAY
+===================================================== */
+
+.preview-overlay{
+
+    -fx-background-color:rgba(0,0,0,0.55);
+
+}
+
+
+/* =====================================================
+   A4 PAPER
+===================================================== */
+
+.paper-preview{
+
+    -fx-background-color:white;
+
+    -fx-background-radius:10;
+
+    -fx-border-radius:10;
+
+    -fx-effect:dropshadow(
+
+        gaussian,
+
+        rgba(0,0,0,0.35),
+
+        35,
+
+        0.25,
+
+        0,
+
+        8
+
+    );
+
+}
+
+
+/* =====================================================
+   REPORT CONTENT
+===================================================== */
+
+.report-content{
+
+    -fx-background-color:white;
+
+}
+
+
+/* =====================================================
+   TITLE
+===================================================== */
+
+.report-title{
+
+    -fx-font-size:28;
+
+    -fx-font-weight:bold;
+
+    -fx-text-fill:#1E3A34;
+
+}
+
+
+/* =====================================================
+   SUBTITLE
+===================================================== */
+
+.report-subtitle{
+
+    -fx-font-size:18;
+
+    -fx-text-fill:#555555;
+
+}
+
+
+/* =====================================================
+   DATE
+===================================================== */
+
+.report-date{
+
+    -fx-font-size:13;
+
+    -fx-text-fill:#888888;
+
+}
+
+
+/* =====================================================
+   CLOSE BUTTON
+===================================================== */
+
+.close-button{
+
+    -fx-background-color:transparent;
+
+    -fx-font-size:18;
+
+    -fx-font-weight:bold;
+
+    -fx-text-fill:#777777;
+
+    -fx-cursor:hand;
+
+}
+
+
+.close-button:hover{
+
+    -fx-background-color:#E53935;
+
+    -fx-text-fill:white;
+
+    -fx-background-radius:20;
+
+}
+
+
+/* =====================================================
+   SCROLLPANE
+===================================================== */
+
+.scroll-pane{
+
+    -fx-background-color:white;
+
+}
+
+
+.scroll-pane > .viewport{
+
+    -fx-background-color:white;
+
+}
+
+/* =====================================================
+   KPI CARDS
+===================================================== */
+
+.kpi-card{
+
+    -fx-background-color:#F5F8F6;
+
+    -fx-background-radius:12;
+
+    -fx-padding:15;
+
+    -fx-min-width:110;
+
+    -fx-min-height:70;
+
+    -fx-border-color:#E0E0E0;
+
+    -fx-border-radius:12;
+
+}
+
+
+
+.kpi-title{
+
+    -fx-font-size:12;
+
+    -fx-text-fill:#777777;
+
+}
+
+
+
+.kpi-value{
+
+    -fx-font-size:20;
+
+    -fx-font-weight:bold;
+
+    -fx-text-fill:#1E3A34;
+
+}
+
+
+
+
+
+/* =====================================================
+   REPORT SECTIONS
+===================================================== */
+
+.report-section-title{
+
+    -fx-font-size:18;
+
+    -fx-font-weight:bold;
+
+    -fx-text-fill:#1E3A34;
+
+}
+
+
+
+
+
+/* =====================================================
+   REPORT ITEMS
+===================================================== */
+
+.report-item{
+
+    -fx-font-size:14;
+
+    -fx-text-fill:#333333;
+
+}
+
+
+
+
+
+/* =====================================================
+   STATUS COLORS
+===================================================== */
+
+.status-low{
+
+    -fx-text-fill:#F57C00;
+
+    -fx-font-weight:bold;
+
+}
+
+
+
+.status-out{
+
+    -fx-text-fill:#D32F2F;
+
+    -fx-font-weight:bold;
+
+}
+
+
+
+
+
+/* =====================================================
+   CHART AREA
+===================================================== */
+
+.chart-container{
+
+    -fx-background-color:white;
+
+}
+
+
+
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.report-footer{
+
+    -fx-font-size:11;
+
+    -fx-text-fill:#888888;
+
+    -fx-alignment:center;
+
+}
+
+
+
+
+
+
+/* =====================================================
+   TABLE STYLE
+===================================================== */
+
+.report-table{
+
+    -fx-background-color:white;
+
+    -fx-border-color:#DDDDDD;
+
+    -fx-border-radius:8;
+
+}
+
+
+.report-table .column-header-background{
+
+    -fx-background-color:#1E3A34;
+
+}
+
+
+.report-table .column-header{
+
+    -fx-text-fill:white;
+
+}
+.status-low{
+
+    -fx-text-fill:#F57C00;
+
+    -fx-font-size:16px;
+
+    -fx-font-weight:bold;
+
+}
+
+
+
+.status-out{
+
+    -fx-text-fill:#D32F2F;
+
+    -fx-font-size:16px;
+
+    -fx-font-weight:bold;
+
+}
+/* =====================================================
+   REPORT HEADER
+===================================================== */
+
+
+.report-system{
+
+    -fx-font-size:13px;
+
+    -fx-text-fill:#2E7D32;
+
+    -fx-font-weight:bold;
+
+}
+
+
+
+.report-title{
+
+    -fx-font-size:32px;
+
+    -fx-font-weight:bold;
+
+    -fx-text-fill:#1E3A34;
+
+}
+
+
+
+.report-subtitle{
+
+    -fx-font-size:20px;
+
+    -fx-font-weight:bold;
+
+    -fx-text-fill:#555555;
+
+}
+/* =====================================================
+   FOOTER
+===================================================== */
+
+
+.report-footer-box{
+
+    -fx-padding:20 0 20 0;
+
+    -fx-alignment:center;
+
+}
+
+
+
+.report-footer{
+
+    -fx-font-size:12px;
+
+    -fx-font-weight:bold;
+
+    -fx-text-fill:#333333;
+
+}
+
+
+
+.report-footer-small{
+
+    -fx-font-size:11px;
+
+    -fx-text-fill:#555555;
+
+}
+.report-footer-box{
+
+    -fx-padding:25 0 25 0;
+
+    -fx-alignment:center;
+
+    -fx-background-color:white;
+
+}
+
+
+.report-footer{
+
+    -fx-font-size:12px;
+
+    -fx-font-weight:bold;
+
+    -fx-text-fill:#1E3A34;
+
+}
+
+
+.report-footer-small{
+
+    -fx-font-size:11px;
+
+    -fx-text-fill:#777777;
+
+}
