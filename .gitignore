@@ -1,0 +1,25 @@
+# ==============================
+# StockPilot Root
+# ==============================
+
+# Desktop generated files
+desktop/target/
+desktop/runtime/
+desktop/installer/
+desktop/META-INF/
+desktop/*.exe
+desktop/*.log
+
+# Backend generated files
+backend/target/
+
+# IDE files
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db

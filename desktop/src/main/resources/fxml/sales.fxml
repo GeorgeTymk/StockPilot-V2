@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Pos?>
+
+
+<HBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.stockpilot.controller.SalesController"
+      spacing="0">
+
+
+    <BorderPane HBox.hgrow="ALWAYS"
+                styleClass="page-container">
+
+
+        <!-- HEADER -->
+        <top>
+
+            <HBox alignment="CENTER_LEFT"
+                  styleClass="page-header">
+
+                <padding>
+                    <Insets top="20"
+                            right="25"
+                            bottom="20"
+                            left="25"/>
+                </padding>
+
+
+                <VBox spacing="5">
+
+                    <Label text="Record Sale"
+                           styleClass="page-title"/>
+
+
+                    <Label text="Sell recipes and update inventory automatically"
+                           styleClass="subtitle"/>
+
+                </VBox>
+
+
+            </HBox>
+
+        </top>
+
+
+
+        <!-- CONTENT -->
+
+        <center>
+
+
+            <StackPane>
+
+
+                <VBox spacing="20">
+
+
+                    <padding>
+
+                        <Insets top="30"
+                                right="40"
+                                bottom="30"
+                                left="40"/>
+
+                    </padding>
+
+
+
+                    <Label text="Select Recipe"/>
+
+
+
+                    <ComboBox fx:id="recipeComboBox"
+                              prefWidth="350"
+                              promptText="Choose recipe"/>
+
+
+
+
+                    <Label text="Quantity Sold"/>
+
+
+
+                    <TextField fx:id="quantityField"
+                               prefWidth="350"
+                               promptText="Enter quantity"/>
+
+
+
+
+                    <HBox spacing="10">
+
+
+                        <Label text="Total:"
+                               styleClass="subtitle"/>
+
+
+                        <Label fx:id="totalLabel"
+                               text="0"
+                               styleClass="title"/>
+
+
+                    </HBox>
+
+
+
+
+
+
+                    <HBox spacing="15">
+
+
+                        <Button fx:id="saveSaleButton"
+        text="Save Sale"
+        onAction="#saveSale"
+        styleClass="primary-button"/>
+
+
+
+                        <Button text="Dashboard"
+                                onAction="#openDashboard"
+                                styleClass="secondary-button"/>
+
+
+
+                        <Button text="Back"
+                                onAction="#goBack"
+                                styleClass="secondary-button"/>
+
+
+
+                    </HBox>
+
+
+
+                </VBox>
+
+
+
+
+                <!-- LOADER OVERLAY -->
+
+                <VBox fx:id="loaderPane"
+                      visible="false"
+                      alignment="CENTER"
+                      spacing="15"
+                      styleClass="loader-background">
+
+
+                    <ProgressIndicator fx:id="saleLoader"
+                                       prefWidth="70"
+                                       prefHeight="70"/>
+
+
+                    <Label text="Processing Sale..."
+                           styleClass="loader-text"/>
+
+
+                </VBox>
+
+
+
+
+            </StackPane>
+
+
+        </center>
+
+
+    </BorderPane>
+
+
+</HBox>

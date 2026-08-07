@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<VBox spacing="20"
+      alignment="CENTER"
+      xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.stockpilot.controller.AddRecipeIngredientController">
+
+
+    <padding>
+        <Insets top="40"
+                right="40"
+                bottom="40"
+                left="40"/>
+    </padding>
+
+
+
+    <Label text="Add Ingredient To Recipe"
+           style="-fx-font-size:22px;
+                  -fx-font-weight:bold;"/>
+
+
+
+
+    <ComboBox fx:id="ingredientComboBox"
+              prefWidth="300"
+              promptText="Select Ingredient"/>
+
+
+
+
+    <TextField fx:id="quantityField"
+               prefWidth="300"
+               promptText="Quantity Used"/>
+
+
+
+
+    <Label fx:id="unitLabel"
+           text="Unit"/>
+
+
+
+
+
+    <HBox spacing="15"
+          alignment="CENTER">
+
+
+        <Button text="Save"
+                onAction="#saveIngredient"/>
+
+
+
+        <Button text="Back"
+                onAction="#goBack"/>
+
+
+    </HBox>
+
+
+
+</VBox>
