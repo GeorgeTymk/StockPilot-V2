@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.stockpilot.controller.RestockController">
+
+
+    <top>
+
+        <VBox spacing="10">
+
+            <padding>
+                <Insets top="25"
+                        right="30"
+                        bottom="20"
+                        left="30"/>
+            </padding>
+
+
+            <Label text="Restock Inventory"
+                   styleClass="title"/>
+
+
+            <Label text="Add purchased stock from suppliers"
+                   styleClass="subtitle"/>
+
+
+        </VBox>
+
+
+    </top>
+
+
+
+    <center>
+
+
+        <VBox spacing="20"
+              alignment="CENTER_LEFT">
+
+
+            <padding>
+
+                <Insets top="30"
+                        right="30"
+                        bottom="30"
+                        left="30"/>
+
+            </padding>
+
+
+
+            <Label text="Supplier"/>
+
+
+            <ComboBox fx:id="supplierComboBox"
+                      prefWidth="350"
+                      promptText="Select Supplier"/>
+
+
+
+
+            <Label text="Ingredient"/>
+
+
+            <ComboBox fx:id="ingredientComboBox"
+                      prefWidth="350"
+                      promptText="Select Ingredient"/>
+
+
+
+
+
+            <Label text="Quantity"/>
+
+
+            <TextField fx:id="quantityField"
+                       prefWidth="350"
+                       promptText="Enter quantity"/>
+
+
+
+
+
+            <Label text="Cost"/>
+
+
+            <TextField fx:id="costField"
+                       prefWidth="350"
+                       promptText="Enter purchase cost"/>
+
+
+
+
+
+
+            <HBox spacing="15">
+
+
+                <Button text="Save Restock"
+                        onAction="#saveRestock"/>
+
+
+                <Button text="Back"
+                        onAction="#goBack"/>
+
+
+            </HBox>
+
+
+
+        </VBox>
+
+
+
+    </center>
+
+
+
+</BorderPane>

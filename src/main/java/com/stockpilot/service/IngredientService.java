@@ -1,716 +1,330 @@
 package com.stockpilot.service;
 
-
-import com.stockpilot.database.Database;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.stockpilot.api.ApiClient;
 import com.stockpilot.model.Ingredient;
 
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
 public class IngredientService {
 
+    private final Gson gson = new Gson();
 
-    private final InventoryHistoryService historyService =
-            new InventoryHistoryService();
+    // =====================================================
+    // API RESPONSE WRAPPER
+    // =====================================================
 
+    private static class IngredientResponse {
 
+        private List<Ingredient> value;
 
+        private int Count;
+    }
+
+    // =====================================================
+    // GET ALL INGREDIENTS
+    // GET /api/ingredients
+    // =====================================================
+
+    public List<Ingredient> getAllIngredients() {
+
+    try {
+
+        String json =
+                ApiClient.get("/ingredients");
+
+        Type listType =
+                new TypeToken<List<Ingredient>>() {}.getType();
+
+        List<Ingredient> ingredients =
+                gson.fromJson(json, listType);
+
+        if (ingredients == null) {
+
+            return new ArrayList<>();
+
+        }
+
+        System.out.println(
+                "Ingredients loaded from backend: "
+                        + ingredients.size()
+        );
+
+        return ingredients;
+
+    }
+    catch (Exception e) {
+
+        System.out.println(
+                "Error loading ingredients from backend"
+        );
+
+        e.printStackTrace();
+
+        return new ArrayList<>();
+    }
+}
+
+    // =====================================================
+    // GET INGREDIENT BY ID
+    // GET /api/ingredients/{id}
+    // =====================================================
+
+    public Ingredient getIngredientById(int id) {
+
+        try {
+
+            String json =
+                    ApiClient.get(
+                            "/ingredients/" + id
+                    );
+
+            return gson.fromJson(
+                    json,
+                    Ingredient.class
+            );
+
+        }
+        catch (Exception e) {
+
+            System.out.println(
+                    "Error loading ingredient from backend"
+            );
+
+            e.printStackTrace();
+
+            return null;
+        }
+    }
+
+    // =====================================================
+    // GET LOW STOCK INGREDIENTS
+    // =====================================================
+
+    public List<Ingredient> getLowStockIngredients() {
+
+        List<Ingredient> ingredients =
+                getAllIngredients();
+
+        List<Ingredient> lowStock =
+                new ArrayList<>();
+
+        for (Ingredient ingredient : ingredients) {
+
+            if (ingredient.getQuantity() > 0
+                    && ingredient.getQuantity()
+                    <= ingredient.getMinimumStock()) {
+
+                lowStock.add(ingredient);
+            }
+        }
+
+        return lowStock;
+    }
+
+    // =====================================================
+    // GET OUT OF STOCK INGREDIENTS
+    // =====================================================
+
+    public List<Ingredient> getOutOfStockIngredients() {
+
+        List<Ingredient> ingredients =
+                getAllIngredients();
+
+        List<Ingredient> outOfStock =
+                new ArrayList<>();
+
+        for (Ingredient ingredient : ingredients) {
+
+            if (ingredient.getQuantity() <= 0) {
+
+                outOfStock.add(ingredient);
+            }
+        }
+
+        return outOfStock;
+    }
+
+    // =====================================================
+    // GET STOCK ALERTS
+    // LOW STOCK + OUT OF STOCK
+    // =====================================================
+
+    public List<Ingredient> getStockAlerts() {
+
+        List<Ingredient> ingredients =
+                getAllIngredients();
+
+        List<Ingredient> alerts =
+                new ArrayList<>();
+
+        for (Ingredient ingredient : ingredients) {
+
+            if (ingredient.getQuantity()
+                    <= ingredient.getMinimumStock()) {
+
+                alerts.add(ingredient);
+            }
+        }
+
+        return alerts;
+    }
+
+    // =====================================================
+    // COUNTS
+    // =====================================================
+
+    public int getIngredientCount() {
+
+        return getAllIngredients().size();
+    }
+
+    public int getLowStockCount() {
+
+        return getLowStockIngredients().size();
+    }
+
+    public int getOutOfStockCount() {
+
+        return getOutOfStockIngredients().size();
+    }
 
     // =====================================================
     // ADD INGREDIENT
+    // POST /api/ingredients
     // =====================================================
 
-    public void addIngredient(
+    public Ingredient addIngredient(
             String name,
             double quantity,
             String unit,
             double minimumStock
-    ){
+    ) {
 
-        String sql =
-                """
-                INSERT INTO ingredients
-                (
-                    name,
-                    quantity,
-                    unit,
-                    minimum_stock
-                )
-                VALUES (?, ?, ?, ?)
-                """;
+        try {
 
+            IngredientRequest request =
+                    new IngredientRequest(
+                            name,
+                            quantity,
+                            unit,
+                            minimumStock
+                    );
 
-        try(
-                Connection connection = Database.connect();
+            String json =
+                    gson.toJson(request);
 
-                PreparedStatement statement =
-                        connection.prepareStatement(sql)
-
-        ){
-
-            statement.setString(1,name);
-            statement.setDouble(2,quantity);
-            statement.setString(3,unit);
-            statement.setDouble(4,minimumStock);
-
-
-            statement.executeUpdate();
-
+            String response =
+                    ApiClient.post(
+                            "/ingredients",
+                            json
+                    );
 
             System.out.println(
-                    "Ingredient added successfully"
+                    "Ingredient created through backend"
             );
 
+            return gson.fromJson(
+                    response,
+                    Ingredient.class
+            );
 
         }
-        catch(Exception e){
+        catch (Exception e) {
+
+            System.out.println(
+                    "Error creating ingredient through backend"
+            );
 
             e.printStackTrace();
 
+            return null;
         }
-
     }
 
-
-
-
-
-
     // =====================================================
-    // GET ALL INGREDIENTS
+    // ADD STOCK
+    // PUT /api/ingredients/{id}
     // =====================================================
-
-
-    public List<Ingredient> getAllIngredients(){
-
-
-        List<Ingredient> ingredients =
-                new ArrayList<>();
-
-
-        String sql =
-                """
-                SELECT *
-                FROM ingredients
-                ORDER BY name
-                """;
-
-
-
-        try(
-                Connection connection = Database.connect();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(sql);
-
-                ResultSet result =
-                        statement.executeQuery()
-
-        ){
-
-
-            while(result.next()){
-
-
-                ingredients.add(
-                        mapIngredient(result)
-                );
-
-
-            }
-
-
-        }
-        catch(Exception e){
-
-            e.printStackTrace();
-
-        }
-
-
-        return ingredients;
-
-    }
-
-
-
-
-
-
-
-    // =====================================================
-    // LOW STOCK LIST
-    // =====================================================
-
-
-    public List<Ingredient> getLowStockIngredients(){
-
-
-        List<Ingredient> ingredients =
-                new ArrayList<>();
-
-
-
-        String sql =
-                """
-                SELECT *
-                FROM ingredients
-                WHERE quantity > 0
-                AND quantity <= minimum_stock
-                ORDER BY quantity ASC
-                """;
-
-
-
-        try(
-                Connection connection = Database.connect();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(sql);
-
-                ResultSet result =
-                        statement.executeQuery()
-
-        ){
-
-
-            while(result.next()){
-
-
-                ingredients.add(
-                        mapIngredient(result)
-                );
-
-
-            }
-
-
-        }
-        catch(Exception e){
-
-            e.printStackTrace();
-
-        }
-
-
-        return ingredients;
-
-    }
-
-
-
-
-
-
-
-    // =====================================================
-    // RESTOCK
-    // =====================================================
-
 
     public void addStock(
             int ingredientId,
             double quantity
-    ){
+    ) {
 
+        try {
 
-        String sql =
-                """
-                UPDATE ingredients
+            Ingredient ingredient =
+                    getIngredientById(ingredientId);
 
-                SET quantity = quantity + ?
-
-                WHERE id = ?
-                """;
-
-
-
-        try(
-                Connection connection = Database.connect();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(sql)
-
-        ){
-
-
-            statement.setDouble(1,quantity);
-
-            statement.setInt(2,ingredientId);
-
-
-
-            int updated =
-                    statement.executeUpdate();
-
-
-
-            if(updated > 0){
-
-
-                historyService.recordMovement(
-
-                        ingredientId,
-
-                        "RESTOCK",
-
-                        quantity
-
-                );
-
+            if (ingredient == null) {
 
                 System.out.println(
-                        "Stock added successfully"
+                        "Ingredient not found"
                 );
 
+                return;
             }
 
-
-        }
-        catch(Exception e){
-
-            e.printStackTrace();
-
-        }
-
-    }
-
-
-
-
-
-
-
-    // =====================================================
-    // DEDUCT STOCK
-    // =====================================================
-
-
-    public void deductIngredient(
-            int ingredientId,
-            double quantity
-    ){
-
-
-        String sql =
-                """
-                UPDATE ingredients
-
-                SET quantity = quantity - ?
-
-                WHERE id = ?
-                """;
-
-
-
-        try(
-                Connection connection = Database.connect();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(sql)
-
-        ){
-
-
-            statement.setDouble(1,quantity);
-
-            statement.setInt(2,ingredientId);
-
-
-
-            int updated =
-                    statement.executeUpdate();
-
-
-
-            if(updated > 0){
-
-
-                historyService.recordMovement(
-
-                        ingredientId,
-
-                        "SALE",
-
-                        quantity
-
-                );
-
-
-            }
-
-
-        }
-        catch(Exception e){
-
-            e.printStackTrace();
-
-        }
-
-
-    }
-
-
-
-
-
-
-
-    // =====================================================
-// DASHBOARD COUNTS
-// =====================================================
-
-
-// =====================================================
-// LOW STOCK COUNT
-// =====================================================
-
-public int getLowStockCount() {
-
-
-    String sql =
-            """
-            SELECT COUNT(*)
-            FROM ingredients
-            WHERE quantity > 0
-            AND quantity <= minimum_stock
-            """;
-
-
-    try (
-
-            Connection connection =
-                    Database.connect();
-
-            PreparedStatement statement =
-                    connection.prepareStatement(sql);
-
-            ResultSet result =
-                    statement.executeQuery()
-
-    ) {
-
-
-        if(result.next()) {
-
-            return result.getInt(1);
-
-        }
-
-
-    }
-    catch(Exception e){
-
-        e.printStackTrace();
-
-    }
-
-
-    return 0;
-
-}
-
-
-
-
-// =====================================================
-// OUT OF STOCK COUNT
-// =====================================================
-
-public int getOutOfStockCount() {
-
-
-    String sql =
-            """
-            SELECT COUNT(*)
-            FROM ingredients
-            WHERE quantity <= 0
-            """;
-
-
-    try (
-
-            Connection connection =
-                    Database.connect();
-
-            PreparedStatement statement =
-                    connection.prepareStatement(sql);
-
-            ResultSet result =
-                    statement.executeQuery()
-
-    ) {
-
-
-        if(result.next()) {
-
-            return result.getInt(1);
-
-        }
-
-
-    }
-    catch(Exception e){
-
-        e.printStackTrace();
-
-    }
-
-
-    return 0;
-
-}
-
-
-
-
-
-public int getIngredientCount(){
-
-
-    String sql =
-            """
-            SELECT COUNT(*)
-            FROM ingredients
-            """;
-
-
-    try (
-
-            Connection connection =
-                    Database.connect();
-
-            PreparedStatement statement =
-                    connection.prepareStatement(sql);
-
-            ResultSet result =
-                    statement.executeQuery()
-
-    ) {
-
-
-        if(result.next()) {
-
-            return result.getInt(1);
-
-        }
-
-
-    }
-    catch(Exception e){
-
-        e.printStackTrace();
-
-    }
-
-
-    return 0;
-
-}
-
-        
-// =====================================================
-// OUT OF STOCK LIST
-// =====================================================
-
-public List<Ingredient> getOutOfStockIngredients(){
-
-    List<Ingredient> ingredients =
-            new ArrayList<>();
-
-
-    String sql =
-            """
-            SELECT *
-            FROM ingredients
-            WHERE quantity <= 0
-            ORDER BY name
-            """;
-
-
-    try(
-            Connection connection = Database.connect();
-
-            PreparedStatement statement =
-                    connection.prepareStatement(sql);
-
-            ResultSet result =
-                    statement.executeQuery()
-
-    ){
-
-
-        while(result.next()){
-
-            ingredients.add(
-                    mapIngredient(result)
+            double newQuantity =
+                    ingredient.getQuantity()
+                            + quantity;
+
+            ingredient.setQuantity(
+                    newQuantity
+            );
+
+            String json =
+                    gson.toJson(ingredient);
+
+            ApiClient.put(
+                    "/ingredients/" + ingredientId,
+                    json
+            );
+
+            System.out.println(
+                    "Stock updated through backend"
             );
 
         }
+        catch (Exception e) {
 
-
-    }
-    catch(Exception e){
-
-        e.printStackTrace();
-
-    }
-
-
-    return ingredients;
-
-}
-
-// =====================================================
-// LOW STOCK + OUT OF STOCK ALERT LIST
-// =====================================================
-
-public List<Ingredient> getStockAlerts(){
-
-    List<Ingredient> ingredients =
-            new ArrayList<>();
-
-
-    String sql =
-            """
-            SELECT *
-            FROM ingredients
-            WHERE quantity <= minimum_stock
-            ORDER BY quantity ASC
-            """;
-
-
-    try(
-            Connection connection = Database.connect();
-
-            PreparedStatement statement =
-                    connection.prepareStatement(sql);
-
-            ResultSet result =
-                    statement.executeQuery()
-
-    ){
-
-        while(result.next()){
-
-            ingredients.add(
-                    mapIngredient(result)
+            System.out.println(
+                    "Error updating ingredient stock"
             );
 
+            e.printStackTrace();
         }
-
     }
-    catch(Exception e){
-
-        e.printStackTrace();
-
-    }
-
-
-    return ingredients;
-
-}
-
-
-
-
-// =====================================================
-// FIND INGREDIENT
-// =====================================================
-
-
-public Ingredient getIngredientById(
-        int ingredientId
-){
-
-
-    String sql =
-            """
-            SELECT *
-            FROM ingredients
-            WHERE id = ?
-            """;
-
-
-
-    try(
-            Connection connection = Database.connect();
-
-            PreparedStatement statement =
-                    connection.prepareStatement(sql)
-
-    ){
-
-
-        statement.setInt(
-                1,
-                ingredientId
-        );
-
-
-        ResultSet result =
-                statement.executeQuery();
-
-
-
-        if(result.next()){
-
-
-            return mapIngredient(result);
-
-
-        }
-
-
-    }
-    catch(Exception e){
-
-        e.printStackTrace();
-
-    }
-
-
-
-    return null;
-
-}
-
-
-
 
     // =====================================================
-    // MAP DATABASE OBJECT
+    // REQUEST OBJECT
     // =====================================================
 
+    private static class IngredientRequest {
 
-    private Ingredient mapIngredient(
-            ResultSet result
-    )
-    throws Exception{
+        private final String name;
 
+        private final double quantity;
 
-        return new Ingredient(
+        private final String unit;
 
-                result.getInt("id"),
+        private final double minimumStock;
 
-                result.getString("name"),
+        private IngredientRequest(
+                String name,
+                double quantity,
+                String unit,
+                double minimumStock
+        ) {
 
-                result.getDouble("quantity"),
-
-                result.getString("unit"),
-
-                result.getDouble("minimum_stock")
-
-        );
-
+            this.name = name;
+            this.quantity = quantity;
+            this.unit = unit;
+            this.minimumStock = minimumStock;
+        }
     }
-
-
 }

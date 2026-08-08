@@ -1,0 +1,626 @@
+/* ==================================================
+   STOCKPILOT DASHBOARD V2
+   ================================================== */
+
+
+
+/* ==================================================
+   DASHBOARD CONTAINERS
+   ================================================== */
+
+
+.dashboard-background {
+
+    -fx-background-color:#F8FAFC;
+
+}
+
+
+
+.floating-dashboard {
+
+        -fx-pref-height: 650px;
+
+    -fx-background-color: white;
+
+    -fx-background-radius: 22;
+
+    -fx-padding: 30;
+
+    -fx-effect:
+        dropshadow(
+            gaussian,
+            rgba(0,0,0,0.15),
+            20,
+            0,
+            0,
+            5
+        );
+
+}
+
+
+
+.dashboard-scroll {
+
+    -fx-background-color:transparent;
+
+    -fx-border-color:transparent;
+
+}
+
+
+
+.dashboard-scroll > .viewport {
+
+    -fx-background-color:transparent;
+
+}
+
+
+
+
+
+.dashboard-header {
+
+    -fx-min-height:90;
+
+    -fx-pref-height:90;
+
+    -fx-alignment:center-left;
+
+}
+
+
+
+
+
+/* ==================================================
+   HEADER SEARCH
+   ================================================== */
+
+
+.dashboard-search {
+
+    -fx-pref-width:320;
+
+    -fx-pref-height:46;
+
+    -fx-background-color:#F8FAFC;
+
+    -fx-background-radius:14;
+
+    -fx-border-color:#E2E8F0;
+
+    -fx-border-radius:14;
+
+    -fx-padding:0 18;
+
+    -fx-font-size:14px;
+
+}
+
+
+
+
+
+/* ==================================================
+   HEADER BUTTONS
+   ================================================== */
+
+
+.header-action-button {
+
+
+    -fx-background-color:#16A34A;
+
+
+    -fx-background-radius:14;
+
+
+    -fx-pref-height:46;
+
+
+    -fx-padding:0 22;
+
+
+    -fx-text-fill:white;
+
+
+    -fx-font-weight:700;
+
+
+    -fx-cursor:hand;
+
+
+}
+
+
+
+.header-action-button:hover {
+
+
+    -fx-background-color:#15803D;
+
+
+}
+
+
+
+
+
+.notification-button {
+
+
+    -fx-background-color:white;
+
+
+    -fx-background-radius:14;
+
+
+    -fx-border-color:#E2E8F0;
+
+
+    -fx-border-radius:14;
+
+
+    -fx-pref-width:46;
+
+
+    -fx-pref-height:46;
+
+
+}
+
+
+
+
+
+
+/* ==================================================
+   DASHBOARD STAT CARDS
+   ================================================== */
+
+
+.dashboard-stat-card {
+
+
+    -fx-background-color:white;
+
+
+    -fx-background-radius:24;
+
+
+    -fx-border-color:#EEF2F7;
+
+
+    -fx-border-radius:24;
+
+
+    -fx-padding:32;
+
+
+    -fx-spacing:18;
+
+
+    -fx-min-height:170;
+
+
+    -fx-pref-height:170;
+
+
+    -fx-effect:
+
+
+        dropshadow(
+            gaussian,
+            rgba(15,23,42,0.08),
+            25,
+            0.18,
+            0,
+            6
+        );
+
+}
+
+
+
+.dashboard-stat-card:hover {
+
+
+    -fx-translate-y:-3;
+
+}
+
+
+
+
+
+/* ==================================================
+   ICON BOXES
+   ================================================== */
+
+
+.green-icon-box {
+
+    -fx-background-color:#DCFCE7;
+
+    -fx-background-radius:16;
+
+    -fx-min-width:52;
+
+    -fx-min-height:52;
+
+}
+
+
+
+.blue-icon-box {
+
+    -fx-background-color:#DBEAFE;
+
+    -fx-background-radius:16;
+
+    -fx-min-width:52;
+
+    -fx-min-height:52;
+
+}
+
+
+
+.orange-icon-box {
+
+    -fx-background-color:#FEF3C7;
+
+    -fx-background-radius:16;
+
+    -fx-min-width:52;
+
+    -fx-min-height:52;
+
+}
+
+
+
+.red-icon-box {
+
+    -fx-background-color:#FEE2E2;
+
+    -fx-background-radius:16;
+
+    -fx-min-width:52;
+
+    -fx-min-height:52;
+
+}
+
+
+
+
+
+
+
+/* ==================================================
+   CHART CARDS
+   ================================================== */
+
+
+.chart-card {
+
+
+    -fx-background-color:white;
+
+
+    -fx-background-radius:24;
+
+
+    -fx-border-color:#E5E7EB;
+
+
+    -fx-border-radius:24;
+
+
+    -fx-padding:22;
+
+
+    -fx-spacing:15;
+
+
+    -fx-effect:
+
+
+        dropshadow(
+            gaussian,
+            rgba(15,23,42,0.08),
+            18,
+            0.15,
+            0,
+            5
+        );
+
+}
+
+
+
+
+
+.chart-title {
+
+
+    -fx-font-size:18px;
+
+
+    -fx-font-weight:800;
+
+
+    -fx-text-fill:#0F172A;
+
+
+}
+
+
+
+
+
+.chart {
+
+
+    -fx-background-color:white;
+
+}
+
+
+
+
+
+.chart-plot-background {
+
+
+    -fx-background-color:white;
+
+}
+
+
+
+
+
+.chart-horizontal-grid-lines,
+
+.chart-vertical-grid-lines {
+
+
+    -fx-stroke:#E5E7EB;
+
+}
+
+
+
+
+
+.axis {
+
+
+    -fx-tick-label-fill:#64748B;
+
+
+    -fx-font-size:12px;
+
+
+}
+
+
+
+
+
+
+.chart-series-line {
+
+
+    -fx-stroke:#16A34A;
+
+
+    -fx-stroke-width:3px;
+
+
+}
+
+
+
+
+
+.chart-line-symbol {
+
+
+    -fx-background-radius:8;
+
+
+    -fx-padding:6;
+
+
+}
+
+
+
+
+
+.chart-legend {
+
+
+    -fx-background-color:transparent;
+
+}
+
+
+
+
+
+
+
+/* ==================================================
+   ACTIVITY SECTION
+   ================================================== */
+
+
+.activity-panel {
+
+
+    -fx-background-color:white;
+
+
+    -fx-background-radius:24;
+
+
+    -fx-padding:22;
+
+
+    -fx-spacing:15;
+
+
+}
+
+
+
+
+
+.activity-list {
+
+
+    -fx-background-color:transparent;
+
+
+    -fx-border-color:transparent;
+
+
+}
+
+
+
+.activity-list .list-cell {
+
+
+    -fx-background-color:transparent;
+
+
+    -fx-padding:10;
+
+
+    -fx-min-height:70;
+
+
+}
+
+
+
+
+
+
+
+.activity-card {
+
+
+    -fx-background-color:white;
+
+
+    -fx-background-radius:18;
+
+
+    -fx-padding:14;
+
+
+    -fx-border-color:#E5E7EB;
+
+
+    -fx-border-radius:18;
+
+
+}
+
+
+
+
+
+.activity-card:hover {
+
+
+    -fx-background-color:#F8FAFC;
+
+}
+
+
+
+
+
+.activity-title {
+
+
+    -fx-font-size:14px;
+
+
+    -fx-font-weight:bold;
+
+
+    -fx-text-fill:#0F172A;
+
+
+}
+
+
+
+
+
+.activity-time {
+
+
+    -fx-font-size:11px;
+
+
+    -fx-text-fill:#777777;
+
+
+}
+
+
+
+
+
+.activity-restock {
+
+
+    -fx-text-fill:#2E7D32;
+
+
+    -fx-font-weight:bold;
+
+
+}
+
+
+
+
+
+.activity-sale {
+
+
+    -fx-text-fill:#D32F2F;
+
+
+    -fx-font-weight:bold;
+
+
+}
+
+
+
+
+
+.activity-default {
+
+
+    -fx-text-fill:#1976D2;
+
+
+    -fx-font-weight:bold;
+
+
+}

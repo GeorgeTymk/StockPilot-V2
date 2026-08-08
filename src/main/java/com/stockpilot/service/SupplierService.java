@@ -1,117 +1,89 @@
 package com.stockpilot.service;
 
-
-import com.stockpilot.database.Database;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.stockpilot.api.ApiClient;
 import com.stockpilot.model.Supplier;
 
-
-import java.sql.*;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
 public class SupplierService {
 
+    private final Gson gson = new Gson();
 
+    // =====================================================
+    // Get all suppliers
+    // GET /api/suppliers
+    // =====================================================
 
-    public List<Supplier> getAllSuppliers(){
+    public List<Supplier> getAllSuppliers() {
 
+        try {
 
-        List<Supplier> suppliers = new ArrayList<>();
+            String json =
+                    ApiClient.get("/suppliers");
 
+            Type listType =
+                    new TypeToken<List<Supplier>>() {}.getType();
 
-        String sql = "SELECT * FROM suppliers";
+            List<Supplier> suppliers =
+                    gson.fromJson(json, listType);
 
-
-
-        try(Connection connection = Database.connect();
-
-            Statement statement = connection.createStatement();
-
-            ResultSet result = statement.executeQuery(sql)){
-
-
-
-            while(result.next()){
-
-
-                suppliers.add(
-
-                    new Supplier(
-
-                        result.getInt("id"),
-
-                        result.getString("name"),
-
-                        result.getString("phone"),
-
-                        result.getString("email")
-
-                    )
-
-                );
-
-
+            if (suppliers == null) {
+                return new ArrayList<>();
             }
 
+            System.out.println(
+                    "Suppliers loaded from backend: "
+                            + suppliers.size()
+            );
 
+            return suppliers;
 
-        }catch(Exception e){
+        } catch (Exception e) {
 
-            e.printStackTrace();
-
-        }
-
-
-
-        return suppliers;
-
-
-    }
-
-
-
-
-    public void addSupplier(Supplier supplier){
-
-
-
-        String sql =
-        """
-        INSERT INTO suppliers(name,phone,email)
-        VALUES(?,?,?)
-        """;
-
-
-
-        try(Connection connection = Database.connect();
-
-            PreparedStatement ps =
-                    connection.prepareStatement(sql)){
-
-
-
-            ps.setString(1,supplier.getName());
-
-            ps.setString(2,supplier.getPhone());
-
-            ps.setString(3,supplier.getEmail());
-
-
-
-            ps.executeUpdate();
-
-
-
-        }catch(Exception e){
+            System.out.println(
+                    "Error loading suppliers from backend"
+            );
 
             e.printStackTrace();
 
+            return new ArrayList<>();
         }
-
-
     }
 
+    // =====================================================
+    // Add supplier
+    // POST /api/suppliers
+    // =====================================================
 
+    public void addSupplier(Supplier supplier) {
+
+        try {
+
+            String json =
+                    gson.toJson(supplier);
+
+            String response =
+                    ApiClient.post(
+                            "/suppliers",
+                            json
+                    );
+
+            System.out.println(
+                    "Supplier created through backend: "
+                            + response
+            );
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "Error adding supplier through backend"
+            );
+
+            e.printStackTrace();
+        }
+    }
 }

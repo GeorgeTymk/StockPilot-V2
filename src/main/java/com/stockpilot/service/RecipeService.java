@@ -1,322 +1,150 @@
 package com.stockpilot.service;
 
-
-import com.stockpilot.database.Database;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.stockpilot.api.ApiClient;
 import com.stockpilot.model.Recipe;
 
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-
-
 public class RecipeService {
 
+    private final Gson gson = new Gson();
 
-
+    // =====================================================
     // Get all recipes
-    public List<Recipe> getAllRecipes(){
+    // GET /api/recipes
+    // =====================================================
 
+    public List<Recipe> getAllRecipes() {
 
-        List<Recipe> recipes = new ArrayList<>();
+        try {
 
+            String json =
+                    ApiClient.get("/recipes");
 
-        String sql =
-                """
-                SELECT *
-                FROM recipes
-                ORDER BY id DESC
-                """;
+            Type listType =
+                    new TypeToken<List<Recipe>>() {}.getType();
 
+            List<Recipe> recipes =
+                    gson.fromJson(json, listType);
 
-
-        try(
-
-                Connection connection = Database.connect();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(sql);
-
-                ResultSet result =
-                        statement.executeQuery()
-
-        ){
-
-
-
-            while(result.next()){
-
-
-                Recipe recipe =
-                        new Recipe(
-
-                                result.getInt("id"),
-
-                                result.getString("name"),
-
-                                result.getString("description"),
-
-                                result.getDouble("selling_price")
-
-                        );
-
-
-                recipes.add(recipe);
-
-
+            if (recipes == null) {
+                return new ArrayList<>();
             }
 
-
-
             System.out.println(
-                    "Recipes loaded: "
-                    + recipes.size()
+                    "Recipes loaded from backend: "
+                            + recipes.size()
             );
 
+            return recipes;
 
-
-        }catch(Exception e){
-
+        } catch (Exception e) {
 
             System.out.println(
-                    "Error loading recipes"
+                    "Error loading recipes from backend"
             );
-
 
             e.printStackTrace();
 
-
+            return new ArrayList<>();
         }
-
-
-
-        return recipes;
-
-
     }
 
 
-
-
-
+    // =====================================================
     // Add recipe
-    public void addRecipe(Recipe recipe){
+    // POST /api/recipes
+    // =====================================================
 
+    public void addRecipe(Recipe recipe) {
 
+        try {
 
-        String sql =
-                """
-                INSERT INTO recipes
-                (
-                    name,
-                    description,
-                    selling_price
-                )
+            String json =
+                    gson.toJson(recipe);
 
-                VALUES
-                (
-                    ?,
-                    ?,
-                    ?
-                )
-                """;
-
-
-
-        try(
-
-                Connection connection =
-                        Database.connect();
-
-
-                PreparedStatement statement =
-                        connection.prepareStatement(sql)
-
-        ){
-
-
-
-            statement.setString(
-                    1,
-                    recipe.getName()
-            );
-
-
-            statement.setString(
-                    2,
-                    recipe.getDescription()
-            );
-
-
-            statement.setDouble(
-                    3,
-                    recipe.getSellingPrice()
-            );
-
-
-
-            statement.executeUpdate();
-
-
+            String response =
+                    ApiClient.post(
+                            "/recipes",
+                            json
+                    );
 
             System.out.println(
-                    "Recipe added successfully"
+                    "Recipe created through backend: "
+                            + response
             );
 
-
-
-        }catch(Exception e){
-
+        } catch (Exception e) {
 
             System.out.println(
-                    "Error adding recipe"
+                    "Error adding recipe through backend"
             );
-
 
             e.printStackTrace();
-
-
         }
-
-
     }
 
 
-
-
-
+    // =====================================================
     // Get recipe by ID
-    public Recipe getRecipeById(int id){
+    // GET /api/recipes/{id}
+    // =====================================================
 
+    public Recipe getRecipeById(int id) {
 
+        try {
 
-        String sql =
-                """
-                SELECT *
-                FROM recipes
-                WHERE id = ?
-                """;
+            String json =
+                    ApiClient.get(
+                            "/recipes/" + id
+                    );
 
-
-
-        try(
-
-                Connection connection =
-                        Database.connect();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(sql)
-
-        ){
-
-
-
-            statement.setInt(
-                    1,
-                    id
+            return gson.fromJson(
+                    json,
+                    Recipe.class
             );
 
-
-            ResultSet result =
-                    statement.executeQuery();
-
-
-
-            if(result.next()){
-
-
-                return new Recipe(
-
-                        result.getInt("id"),
-
-                        result.getString("name"),
-
-                        result.getString("description"),
-
-                        result.getDouble("selling_price")
-
-                );
-
-
-            }
-
-
-
-        }catch(Exception e){
-
-
-            e.printStackTrace();
-
-
-        }
-
-
-
-        return null;
-
-
-    }
-
-
-
-
-
-    // Delete recipe
-    public void deleteRecipe(int id){
-
-
-
-        String sql =
-                """
-                DELETE FROM recipes
-                WHERE id = ?
-                """;
-
-
-
-        try(
-
-                Connection connection =
-                        Database.connect();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(sql)
-
-        ){
-
-
-
-            statement.setInt(
-                    1,
-                    id
-            );
-
-
-            statement.executeUpdate();
-
-
+        } catch (Exception e) {
 
             System.out.println(
-                    "Recipe deleted"
+                    "Error loading recipe"
             );
-
-
-
-        }catch(Exception e){
-
 
             e.printStackTrace();
 
-
+            return null;
         }
-
-
-
     }
 
 
+    // =====================================================
+    // Delete recipe
+    // DELETE /api/recipes/{id}
+    // =====================================================
 
+    public void deleteRecipe(int id) {
+
+        try {
+
+            ApiClient.delete(
+                    "/recipes/" + id
+            );
+
+            System.out.println(
+                    "Recipe deleted through backend"
+            );
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "Error deleting recipe"
+            );
+
+            e.printStackTrace();
+        }
+    }
 }
