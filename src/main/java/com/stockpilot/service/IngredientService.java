@@ -31,42 +31,41 @@ public class IngredientService {
 
     public List<Ingredient> getAllIngredients() {
 
-    try {
+        try {
 
-        String json =
-                ApiClient.get("/ingredients");
+            String json =
+                    ApiClient.get("/ingredients");
 
-        Type listType =
-                new TypeToken<List<Ingredient>>() {}.getType();
+            Type listType =
+                    new TypeToken<List<Ingredient>>() {}.getType();
 
-        List<Ingredient> ingredients =
-                gson.fromJson(json, listType);
+            List<Ingredient> ingredients =
+                    gson.fromJson(json, listType);
 
-        if (ingredients == null) {
+            if (ingredients == null) {
 
-            return new ArrayList<>();
+                return new ArrayList<>();
+            }
+
+            System.out.println(
+                    "Ingredients loaded from backend: "
+                            + ingredients.size()
+            );
+
+            return ingredients;
 
         }
+        catch (Exception e) {
 
-        System.out.println(
-                "Ingredients loaded from backend: "
-                        + ingredients.size()
-        );
+            System.out.println(
+                    "Error loading ingredients from backend"
+            );
 
-        return ingredients;
+            e.printStackTrace();
 
+            return new ArrayList<>();
+        }
     }
-    catch (Exception e) {
-
-        System.out.println(
-                "Error loading ingredients from backend"
-        );
-
-        e.printStackTrace();
-
-        return new ArrayList<>();
-    }
-}
 
     // =====================================================
     // GET INGREDIENT BY ID
@@ -301,6 +300,79 @@ public class IngredientService {
     }
 
     // =====================================================
+    // UPDATE INGREDIENT
+    // PUT /api/ingredients/{id}
+    // =====================================================
+
+    public Ingredient updateIngredient(
+            Ingredient ingredient
+    ) {
+
+        try {
+
+            String json =
+                    gson.toJson(ingredient);
+
+            String response =
+                    ApiClient.put(
+                            "/ingredients/"
+                                    + ingredient.getId(),
+                            json
+                    );
+
+            System.out.println(
+                    "Ingredient updated through backend"
+            );
+
+            return gson.fromJson(
+                    response,
+                    Ingredient.class
+            );
+
+        }
+        catch (Exception e) {
+
+            System.out.println(
+                    "Error updating ingredient through backend"
+            );
+
+            e.printStackTrace();
+
+            return null;
+        }
+    }
+
+    // =====================================================
+// DELETE INGREDIENT
+// DELETE /api/ingredients/{id}
+// =====================================================
+
+public void deleteIngredient(
+        int ingredientId
+) {
+
+    try {
+
+        ApiClient.delete(
+                "/ingredients/" + ingredientId
+        );
+
+        System.out.println(
+                "Ingredient deleted through backend"
+        );
+
+    }
+    catch (Exception e) {
+
+        System.out.println(
+                "Error deleting ingredient through backend"
+        );
+
+        e.printStackTrace();
+    }
+}
+
+    // =====================================================
     // REQUEST OBJECT
     // =====================================================
 
@@ -322,8 +394,11 @@ public class IngredientService {
         ) {
 
             this.name = name;
+
             this.quantity = quantity;
+
             this.unit = unit;
+
             this.minimumStock = minimumStock;
         }
     }

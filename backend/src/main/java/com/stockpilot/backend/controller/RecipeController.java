@@ -3,8 +3,17 @@ package com.stockpilot.backend.controller;
 import com.stockpilot.backend.entity.Recipe;
 import com.stockpilot.backend.repository.RecipeRepository;
 
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -31,7 +40,20 @@ public class RecipeController {
 
     @PostMapping
     public Recipe createRecipe(@RequestBody Recipe recipe) {
-        return recipeRepository.save(recipe);
+
+        Recipe newRecipe = new Recipe();
+
+        newRecipe.setName(recipe.getName());
+        newRecipe.setDescription(recipe.getDescription());
+        newRecipe.setSellingPrice(recipe.getSellingPrice());
+
+        newRecipe.setCreatedAt(
+                recipe.getCreatedAt() != null
+                        ? recipe.getCreatedAt()
+                        : LocalDateTime.now()
+        );
+
+        return recipeRepository.save(newRecipe);
     }
 
     @PutMapping("/{id}")
