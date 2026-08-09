@@ -1,25 +1,76 @@
-# ==============================
-# StockPilot Root
-# ==============================
+# ============================================================
+# StockPilot - Git Ignore
+# ============================================================
 
-# Desktop generated files
-desktop/target/
-desktop/runtime/
-desktop/installer/
-desktop/META-INF/
-desktop/*.exe
-desktop/*.log
+# ------------------------------------------------------------
+# Maven / Java build output
+# ------------------------------------------------------------
+target/
+*/target/
 
-# Backend generated files
-backend/target/
+*.class
+*.jar
 
+# Maven generated files
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+
+# ------------------------------------------------------------
+# Packaged applications / installers
+# ------------------------------------------------------------
+runtime/
+*/runtime/
+
+installer/
+*/installer/
+
+*.exe
+*.msi
+*.app-image
+
+# ------------------------------------------------------------
 # IDE files
+# ------------------------------------------------------------
 .idea/
 *.iml
 
-# VS Code
 .vscode/
+.project
+.classpath
+.settings/
 
-# OS files
+# ------------------------------------------------------------
+# Operating system files
+# ------------------------------------------------------------
 .DS_Store
 Thumbs.db
+desktop.ini
+
+# ------------------------------------------------------------
+# Logs / temporary files
+# ------------------------------------------------------------
+*.log
+*.tmp
+*.temp
+
+# ------------------------------------------------------------
+# JavaFX / packaging generated files
+# ------------------------------------------------------------
+META-INF/
+*/META-INF/
+
+# ------------------------------------------------------------
+# Local databases
+# ------------------------------------------------------------
+*.db
+*.sqlite
+*.sqlite3
+
+# ------------------------------------------------------------
+# Environment / local configuration
+# ------------------------------------------------------------
+.env
+.env.*
