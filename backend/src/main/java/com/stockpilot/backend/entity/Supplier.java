@@ -1,6 +1,7 @@
 package com.stockpilot.backend.entity;
 
 import java.time.LocalDateTime;
+import jakarta.persistence.PrePersist;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,6 +16,7 @@ import lombok.Setter;
 @Table(name = "suppliers")
 @Getter
 @Setter
+
 public class Supplier {
 
     @Id
@@ -31,19 +33,25 @@ public class Supplier {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @PrePersist
+protected void onCreate() {
+    createdAt = LocalDateTime.now();
+}
+
     // Required by JPA
     public Supplier() {
     }
 
     public Supplier(
-            String name,
-            String phone,
-            String email
-    ) {
-        this.name = name;
-        this.phone = phone;
-        this.email = email;
-    }
+        String name,
+        String phone,
+        String email
+) {
+    this.name = name;
+    this.phone = phone;
+    this.email = email;
+    this.createdAt = LocalDateTime.now();
+}
 
     public Long getId() {
         return id;
