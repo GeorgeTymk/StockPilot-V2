@@ -5,15 +5,21 @@ import com.stockpilot.backend.dto.LoginResponse;
 import com.stockpilot.backend.entity.User;
 import com.stockpilot.backend.repository.UserRepository;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository) {
+    public AuthService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder
+    ) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public LoginResponse login(LoginRequest request) {
@@ -23,7 +29,6 @@ public class AuthService {
                 .orElse(null);
 
         if (user == null) {
-
             return new LoginResponse(
                     false,
                     null,
@@ -32,8 +37,10 @@ public class AuthService {
             );
         }
 
-        if (!user.getPassword().equals(request.getPassword())) {
-
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword()
+        )) {
             return new LoginResponse(
                     false,
                     null,
