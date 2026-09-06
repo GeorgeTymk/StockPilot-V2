@@ -1,47 +1,76 @@
 package com.stockpilot.service;
 
-import com.stockpilot.database.Database;
-
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.stockpilot.api.ApiClient;
 
 public class AuthService {
 
+    private final Gson gson = new Gson();
 
     public boolean authenticate(String username, String password) {
 
+        try {
 
-        String sql = """
-                SELECT * FROM users
-                WHERE username = ?
-                AND password = ?
-                """;
+            JsonObject request = new JsonObject();
+            request.addProperty("username", username);
+            request.addProperty("password", password);
 
+            String response =
+                    ApiClient.post(
+                            "/auth/login",
+                            gson.toJson(request)
+                    );
 
-        try (Connection connection = Database.connect();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
+            JsonObject json =
+                    gson.fromJson(response, JsonObject.class);
 
+            boolean success =
+                    json != null
+                            && json.has("success")
+                            && json.get("success").getAsBoolean();
 
-            statement.setString(1, username);
-            statement.setString(2, password);
+            if (success) {
 
+                String loggedInUser =
+                        json.has("username")
+                                ? json.get("username").getAsString()
+                                : username;
 
-            ResultSet result = statement.executeQuery();
+                String role =
+                        json.has("role")
+                                ? json.get("role").getAsString()
+                                : "";
 
+                System.out.println(
+                        "API login successful: "
+                                + loggedInUser
+                                + " ("
+                                + role
+                                + ")"
+                );
 
-            return result.next();
+            } else {
 
+                System.out.println(
+                        json != null && json.has("message")
+                                ? json.get("message").getAsString()
+                                : "Invalid username or password"
+                );
+            }
+
+            return success;
 
         } catch (Exception e) {
 
+            System.err.println(
+                    "Unable to connect to StockPilot API at "
+                            + ApiClient.baseUrl()
+            );
+
             e.printStackTrace();
 
+            return false;
         }
-
-
-        return false;
-
     }
-
 }
