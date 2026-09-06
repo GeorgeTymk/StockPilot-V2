@@ -439,61 +439,33 @@ public class SaleService {
 
     public double getTodaySales(){
 
-    return getSalesBetween(
-            java.time.LocalDate.now(),
-            java.time.LocalDate.now()
-    );
 
-}
+        String sql =
+                """
+                SELECT IFNULL(SUM(total),0)
+
+                FROM sales
+
+                WHERE DATE(sale_date)=DATE('now')
+                """;
 
 
-public double getSalesBetween(
-        java.time.LocalDate from,
-        java.time.LocalDate to
-){
 
-    if(from == null || to == null){
+        try(
 
-        return getTotalSales();
+                Connection connection =
+                        Database.connect();
 
-    }
 
-    if(from.isAfter(to)){
+                PreparedStatement statement =
+                        connection.prepareStatement(sql);
 
-        java.time.LocalDate temp = from;
-        from = to;
-        to = temp;
 
-    }
+                ResultSet result =
+                        statement.executeQuery()
 
-    String sql =
-            """
-            SELECT IFNULL(SUM(total),0)
-            FROM sales
-            WHERE DATE(sale_date) >= ?
-            AND DATE(sale_date) <= ?
-            """;
+        ){
 
-    try(
-            Connection connection =
-                    Database.connect();
-
-            PreparedStatement statement =
-                    connection.prepareStatement(sql)
-    ){
-
-        statement.setString(
-                1,
-                from.toString()
-        );
-
-        statement.setString(
-                2,
-                to.toString()
-        );
-
-        try(ResultSet result =
-                    statement.executeQuery()){
 
             if(result.next()){
 
@@ -501,21 +473,30 @@ public double getSalesBetween(
 
             }
 
+
+        }
+        catch(Exception e){
+
+            e.printStackTrace();
+
         }
 
+
+
+        return 0;
+
+
     }
-    catch(Exception e){
-
-        e.printStackTrace();
-
-    }
-
-    return 0;
-
-}
 
 
-public Map<String,Double> getSalesOverview(){
+
+
+
+
+
+
+
+    public Map<String,Double> getSalesOverview(){
 
 
         Map<String,Double> sales =
@@ -663,182 +644,4 @@ public Map<String,Double> getSalesOverview(){
 
 
 
-
-    public int getOrdersBetween(
-            java.time.LocalDate from,
-            java.time.LocalDate to
-    ){
-
-        if(from == null || to == null){
-
-            return getTotalOrders();
-
-        }
-
-        if(from.isAfter(to)){
-
-            java.time.LocalDate temp = from;
-            from = to;
-            to = temp;
-
-        }
-
-        String sql =
-                """
-                SELECT COUNT(*)
-                FROM sales
-                WHERE DATE(sale_date) >= ?
-                AND DATE(sale_date) <= ?
-                """;
-
-        try(
-                Connection connection =
-                        Database.connect();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(sql)
-        ){
-
-            statement.setString(
-                    1,
-                    from.toString()
-            );
-
-            statement.setString(
-                    2,
-                    to.toString()
-            );
-
-            try(ResultSet result =
-                        statement.executeQuery()){
-
-                if(result.next()){
-
-                    return result.getInt(1);
-
-                }
-
-            }
-
-        }
-        catch(Exception e){
-
-            e.printStackTrace();
-
-        }
-
-        return 0;
-
-    }
-
-    public List<Sale> getSalesBetweenRecords(
-            java.time.LocalDate from,
-            java.time.LocalDate to
-    ){
-
-        List<Sale> sales =
-                new ArrayList<>();
-
-        String sql;
-
-        if(from == null || to == null){
-
-            sql =
-                    """
-                    SELECT
-                        s.id,
-                        s.recipe_id,
-                        r.name AS recipe_name,
-                        s.quantity,
-                        s.total,
-                        s.sale_date
-                    FROM sales s
-                    JOIN recipes r
-                        ON s.recipe_id = r.id
-                    ORDER BY s.sale_date DESC
-                    """;
-
-        }
-        else {
-
-            if(from.isAfter(to)){
-
-                java.time.LocalDate temp = from;
-                from = to;
-                to = temp;
-
-            }
-
-            sql =
-                    """
-                    SELECT
-                        s.id,
-                        s.recipe_id,
-                        r.name AS recipe_name,
-                        s.quantity,
-                        s.total,
-                        s.sale_date
-                    FROM sales s
-                    JOIN recipes r
-                        ON s.recipe_id = r.id
-                    WHERE DATE(s.sale_date) >= ?
-                      AND DATE(s.sale_date) <= ?
-                    ORDER BY s.sale_date DESC
-                    """;
-        }
-
-
-        try(
-                Connection connection =
-                        Database.connect();
-
-                PreparedStatement statement =
-                        connection.prepareStatement(sql)
-        ){
-
-            if(from != null && to != null){
-
-                statement.setString(
-                        1,
-                        from.toString()
-                );
-
-                statement.setString(
-                        2,
-                        to.toString()
-                );
-
-            }
-
-
-            try(ResultSet result =
-                        statement.executeQuery()){
-
-                while(result.next()){
-
-                    sales.add(
-                            new Sale(
-                                    result.getInt("id"),
-                                    result.getInt("recipe_id"),
-                                    result.getString("recipe_name"),
-                                    result.getInt("quantity"),
-                                    result.getDouble("total"),
-                                    result.getString("sale_date")
-                            )
-                    );
-
-                }
-
-            }
-
-        }
-        catch(Exception e){
-
-            e.printStackTrace();
-
-        }
-
-        return sales;
-
-    }
 }

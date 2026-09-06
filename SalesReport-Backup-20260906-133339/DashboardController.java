@@ -1051,12 +1051,12 @@ System.out.println("----------------------------");
         );
 
         dialog.setHeaderText(
-                "Select Sales Period"
+                "Filter Total Sales"
         );
 
         ButtonType apply =
                 new ButtonType(
-                        "View Report",
+                        "Apply",
                         ButtonBar.ButtonData.OK_DONE
                 );
 
@@ -1074,16 +1074,14 @@ System.out.println("----------------------------");
                 .ifPresent(result -> {
 
                     if(result != apply){
-
                         return;
-
                     }
-
-                    String selected =
-                            period.getValue();
 
                     LocalDate from = null;
                     LocalDate to = null;
+
+                    String selected =
+                            period.getValue();
 
                     if("Today".equals(selected)){
 
@@ -1135,35 +1133,57 @@ System.out.println("----------------------------");
                             "Custom Range".equals(selected)
                     ){
 
-                        from = fromPicker.getValue();
+                        from =
+                                fromPicker.getValue();
 
-                        to = toPicker.getValue();
+                        to =
+                                toPicker.getValue();
 
                         if(
                                 from == null
                                 || to == null
                                 || from.isAfter(to)
                         ){
-
                             return;
-
                         }
 
                     }
 
-                    FilteredSalesReportController.setFilter(
-                            from,
-                            to,
-                            selected
-                    );
+                    double amount;
 
-                    Navigator.goTo(
-                            "filtered_sales_report.fxml"
-                    );
+                    if("All Time".equals(selected)){
+
+                        amount =
+                                saleService.getTotalSales();
+
+                    }
+                    else{
+
+                        amount =
+                                saleService.getSalesBetween(
+                                        from,
+                                        to
+                                );
+
+                    }
+
+                    if(totalSalesLabel != null){
+
+                        totalSalesLabel.setText(
+                                "MK "
+                                + String.format(
+                                        Locale.US,
+                                        "%,.2f",
+                                        amount
+                                )
+                        );
+
+                    }
 
                 });
 
     }
+
     @FXML
     private void openOrdersFilter(){
 

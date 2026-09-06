@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.stockpilot.controller.FilteredSalesReportController"
+            styleClass="page-container">
+
+    <top>
+
+        <VBox spacing="6"
+              styleClass="page-header">
+
+            <padding>
+                <Insets top="25"
+                        right="30"
+                        bottom="20"
+                        left="30"/>
+            </padding>
+
+            <Label fx:id="periodLabel"
+                   text="Sales Report"
+                   styleClass="page-title"/>
+
+            <Label text="Detailed sales for the selected period"
+                   styleClass="subtitle"/>
+
+        </VBox>
+
+    </top>
+
+    <center>
+
+        <VBox spacing="20">
+
+            <padding>
+                <Insets top="20"
+                        right="30"
+                        bottom="20"
+                        left="30"/>
+            </padding>
+
+            <GridPane hgap="20"
+                      vgap="20">
+
+                <columnConstraints>
+                    <ColumnConstraints percentWidth="33.33"/>
+                    <ColumnConstraints percentWidth="33.33"/>
+                    <ColumnConstraints percentWidth="33.34"/>
+                </columnConstraints>
+
+                <VBox GridPane.columnIndex="0"
+                      styleClass="dashboard-stat-card">
+
+                    <Label text="Total Sales"
+                           styleClass="stat-heading"/>
+
+                    <Label fx:id="totalSalesLabel"
+                           text="MK 0.00"
+                           styleClass="stat-value"/>
+
+                </VBox>
+
+                <VBox GridPane.columnIndex="1"
+                      styleClass="dashboard-stat-card">
+
+                    <Label text="Orders"
+                           styleClass="stat-heading"/>
+
+                    <Label fx:id="totalOrdersLabel"
+                           text="0"
+                           styleClass="stat-value"/>
+
+                </VBox>
+
+                <VBox GridPane.columnIndex="2"
+                      styleClass="dashboard-stat-card">
+
+                    <Label text="Items Sold"
+                           styleClass="stat-heading"/>
+
+                    <Label fx:id="totalItemsLabel"
+                           text="0"
+                           styleClass="stat-value"/>
+
+                </VBox>
+
+            </GridPane>
+
+            <TableView fx:id="salesTable"
+                       VBox.vgrow="ALWAYS">
+
+                <columns>
+
+                    <TableColumn fx:id="dateColumn"
+                                 text="Date / Time"
+                                 prefWidth="220"/>
+
+                    <TableColumn fx:id="recipeColumn"
+                                 text="Product / Recipe"
+                                 prefWidth="300"/>
+
+                    <TableColumn fx:id="quantityColumn"
+                                 text="Quantity"
+                                 prefWidth="120"/>
+
+                    <TableColumn fx:id="totalColumn"
+                                 text="Total"
+                                 prefWidth="180"/>
+
+                </columns>
+
+            </TableView>
+
+            <HBox spacing="15"
+                  alignment="CENTER_LEFT">
+
+                <Button text="Refresh"
+                        onAction="#refresh"
+                        styleClass="primary-button"/>
+
+                <Button text="Back"
+                        onAction="#goBack"
+                        styleClass="secondary-button"/>
+
+            </HBox>
+
+        </VBox>
+
+    </center>
+
+</BorderPane>

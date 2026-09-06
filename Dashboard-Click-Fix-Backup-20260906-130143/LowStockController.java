@@ -18,14 +18,6 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 
 public class LowStockController {
-    private static boolean outOfStockOnly = false;
-
-    public static void setOutOfStockOnly(boolean value){
-
-        outOfStockOnly = value;
-
-    }
-
 
 
     @FXML
@@ -111,9 +103,7 @@ public class LowStockController {
 
             FXCollections.observableArrayList(
 
-                    outOfStockOnly
-                            ? service.getOutOfStockIngredients()
-                            : service.getStockAlerts()
+                    service.getStockAlerts()
 
             )
 

@@ -184,7 +184,7 @@
 
 
         <VBox GridPane.columnIndex="0"
-              styleClass="dashboard-stat-card" onMouseClicked="#openTotalSalesFilter">
+              styleClass="dashboard-stat-card" onMouseClicked="#openLowStock">
 
 
             <HBox spacing="15"
@@ -240,7 +240,7 @@
 
 
         <VBox GridPane.columnIndex="1"
-              styleClass="dashboard-stat-card" onMouseClicked="#openOrdersFilter">
+              styleClass="dashboard-stat-card" onMouseClicked="#openSalesHistory">
 
 
             <HBox spacing="15"
@@ -301,7 +301,7 @@
 
 
         <VBox GridPane.columnIndex="2"
-              styleClass="dashboard-stat-card" onMouseClicked="#openSellRecipe">
+              styleClass="dashboard-stat-card" onMouseClicked="#openSales">
 
 
             <HBox spacing="15"
@@ -499,7 +499,7 @@
 
 
         <VBox GridPane.columnIndex="1"
-              styleClass="dashboard-stat-card" onMouseClicked="#openIngredients">
+              styleClass="dashboard-stat-card" onMouseClicked="#openSalesHistory">
 
 
 
@@ -549,7 +549,7 @@
 
 
         <VBox GridPane.columnIndex="2"
-              styleClass="dashboard-stat-card" onMouseClicked="#openOutOfStock">
+              styleClass="dashboard-stat-card" onMouseClicked="#openSales">
 
 
 
