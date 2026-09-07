@@ -21,7 +21,7 @@ public class RecipeIngredientService {
 
     // =====================================================
     // Add ingredient to recipe
-    // POST /api/recipe-ingredients
+    // Online first -> SQLite fallback
     // =====================================================
 
     public void addIngredientToRecipe(
@@ -49,28 +49,38 @@ public class RecipeIngredientService {
                             + response
             );
 
+            /*
+             * Save the relationship locally too.
+             */
+            saveRecipeIngredientToSQLite(
+                    recipeId,
+                    ingredientId,
+                    quantity
+            );
+
         } catch (Exception e) {
 
             System.out.println(
-                    "Error adding ingredient through backend."
+                    "Backend unavailable. Saving recipe ingredient locally."
             );
 
-            e.printStackTrace();
+            saveRecipeIngredientToSQLite(
+                    recipeId,
+                    ingredientId,
+                    quantity
+            );
         }
     }
 
 
     // =====================================================
     // Get ingredients for recipe
-    // GET /api/recipe-ingredients/recipe/{recipeId}
+    // Online first -> SQLite fallback
     // =====================================================
 
     public List<RecipeIngredient> getRecipeIngredients(
             int recipeId
     ) {
-
-        List<RecipeIngredient> ingredients =
-                new ArrayList<>();
 
         try {
 
@@ -80,69 +90,96 @@ public class RecipeIngredientService {
                                     + recipeId
                     );
 
-            JsonArray array =
-                    JsonParser.parseString(json)
-                            .getAsJsonArray();
+            List<RecipeIngredient> ingredients =
+                    parseBackendIngredients(json);
 
-            for (JsonElement element : array) {
-
-                JsonObject item =
-                        element.getAsJsonObject();
-
-                int id =
-                        item.get("id")
-                                .getAsInt();
-
-                double quantity =
-                        item.get("quantityUsed")
-                                .getAsDouble();
-
-                JsonObject recipe =
-                        item.getAsJsonObject("recipe");
-
-                JsonObject ingredient =
-                        item.getAsJsonObject("ingredient");
-
-                int recipeIdFromApi =
-                        recipe.get("id")
-                                .getAsInt();
-
-                int ingredientId =
-                        ingredient.get("id")
-                                .getAsInt();
-
-                String ingredientName =
-                        ingredient.get("name")
-                                .getAsString();
-
-                String unit =
-                        ingredient.get("unit")
-                                .getAsString();
-
-                ingredients.add(
-                        new RecipeIngredient(
-                                id,
-                                recipeIdFromApi,
-                                ingredientId,
-                                ingredientName,
-                                quantity,
-                                unit
-                        )
-                );
-            }
+            /*
+             * Cache backend data locally.
+             */
+            cacheRecipeIngredients(
+                    ingredients
+            );
 
             System.out.println(
                     "Recipe ingredients loaded from backend: "
                             + ingredients.size()
             );
 
+            return ingredients;
+
         } catch (Exception e) {
 
             System.out.println(
-                    "Error loading recipe ingredients from backend."
+                    "Backend unavailable. Loading recipe ingredients from SQLite."
             );
 
-            e.printStackTrace();
+            return getRecipeIngredientsFromSQLite(
+                    recipeId
+            );
+        }
+    }
+
+
+    // =====================================================
+    // Parse backend recipe ingredients
+    // =====================================================
+
+    private List<RecipeIngredient> parseBackendIngredients(
+            String json
+    ) {
+
+        List<RecipeIngredient> ingredients =
+                new ArrayList<>();
+
+        JsonArray array =
+                JsonParser.parseString(json)
+                        .getAsJsonArray();
+
+        for (JsonElement element : array) {
+
+            JsonObject item =
+                    element.getAsJsonObject();
+
+            int id =
+                    item.get("id")
+                            .getAsInt();
+
+            double quantity =
+                    item.get("quantityUsed")
+                            .getAsDouble();
+
+            JsonObject recipe =
+                    item.getAsJsonObject("recipe");
+
+            JsonObject ingredient =
+                    item.getAsJsonObject("ingredient");
+
+            int recipeId =
+                    recipe.get("id")
+                            .getAsInt();
+
+            int ingredientId =
+                    ingredient.get("id")
+                            .getAsInt();
+
+            String ingredientName =
+                    ingredient.get("name")
+                            .getAsString();
+
+            String unit =
+                    ingredient.get("unit")
+                            .getAsString();
+
+            ingredients.add(
+                    new RecipeIngredient(
+                            id,
+                            recipeId,
+                            ingredientId,
+                            ingredientName,
+                            quantity,
+                            unit
+                    )
+            );
         }
 
         return ingredients;
@@ -151,7 +188,7 @@ public class RecipeIngredientService {
 
     // =====================================================
     // Remove ingredient from recipe
-    // DELETE /api/recipe-ingredients/{id}
+    // Online first -> SQLite always
     // =====================================================
 
     public void removeIngredientFromRecipe(
@@ -171,7 +208,68 @@ public class RecipeIngredientService {
         } catch (Exception e) {
 
             System.out.println(
-                    "Error removing ingredient through backend."
+                    "Backend unavailable. Removing recipe ingredient locally."
+            );
+        }
+
+        deleteRecipeIngredientFromSQLite(id);
+    }
+
+
+    // =====================================================
+    // Save recipe ingredient locally
+    // =====================================================
+
+    private void saveRecipeIngredientToSQLite(
+            int recipeId,
+            int ingredientId,
+            double quantity
+    ) {
+
+        String sql =
+                """
+                INSERT INTO recipe_ingredients
+                (
+                    recipe_id,
+                    ingredient_id,
+                    quantity_used
+                )
+                VALUES (?, ?, ?)
+                """;
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setInt(
+                    1,
+                    recipeId
+            );
+
+            statement.setInt(
+                    2,
+                    ingredientId
+            );
+
+            statement.setDouble(
+                    3,
+                    quantity
+            );
+
+            statement.executeUpdate();
+
+            System.out.println(
+                    "Recipe ingredient saved locally."
+            );
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "Error saving recipe ingredient locally."
             );
 
             e.printStackTrace();
@@ -180,10 +278,194 @@ public class RecipeIngredientService {
 
 
     // =====================================================
-    // TEMPORARY STOCK DEDUCTION
-    //
-    // Still uses SQLite because the backend does not yet
-    // expose the stock-deduction endpoint.
+    // Load recipe ingredients from SQLite
+    // =====================================================
+
+    private List<RecipeIngredient>
+    getRecipeIngredientsFromSQLite(
+            int recipeId
+    ) {
+
+        List<RecipeIngredient> ingredients =
+                new ArrayList<>();
+
+        String sql =
+                """
+                SELECT
+                    ri.id,
+                    ri.recipe_id,
+                    ri.ingredient_id,
+                    ri.quantity_used,
+                    i.name,
+                    i.unit
+                FROM recipe_ingredients ri
+                INNER JOIN ingredients i
+                    ON i.id = ri.ingredient_id
+                WHERE ri.recipe_id = ?
+                ORDER BY ri.id
+                """;
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setInt(
+                    1,
+                    recipeId
+            );
+
+            try (
+                    ResultSet result =
+                            statement.executeQuery()
+            ) {
+
+                while (result.next()) {
+
+                    ingredients.add(
+                            new RecipeIngredient(
+                                    result.getInt("id"),
+                                    result.getInt("recipe_id"),
+                                    result.getInt("ingredient_id"),
+                                    result.getString("name"),
+                                    result.getDouble("quantity_used"),
+                                    result.getString("unit")
+                            )
+                    );
+                }
+            }
+
+            System.out.println(
+                    "Recipe ingredients loaded from SQLite: "
+                            + ingredients.size()
+            );
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "Error loading recipe ingredients from SQLite."
+            );
+
+            e.printStackTrace();
+        }
+
+        return ingredients;
+    }
+
+
+    // =====================================================
+    // Cache backend recipe ingredients
+    // =====================================================
+
+    private void cacheRecipeIngredients(
+            List<RecipeIngredient> ingredients
+    ) {
+
+        if (ingredients == null) {
+            return;
+        }
+
+        for (RecipeIngredient ingredient : ingredients) {
+
+            String sql =
+                    """
+                    INSERT INTO recipe_ingredients
+                    (
+                        id,
+                        recipe_id,
+                        ingredient_id,
+                        quantity_used
+                    )
+                    VALUES (?, ?, ?, ?)
+                    ON CONFLICT(id)
+                    DO UPDATE SET
+                        recipe_id = excluded.recipe_id,
+                        ingredient_id = excluded.ingredient_id,
+                        quantity_used = excluded.quantity_used
+                    """;
+
+            try (
+                    Connection connection =
+                            Database.connect();
+
+                    PreparedStatement statement =
+                            connection.prepareStatement(sql)
+            ) {
+
+                statement.setInt(
+                        1,
+                        ingredient.getId()
+                );
+
+                statement.setInt(
+                        2,
+                        ingredient.getRecipeId()
+                );
+
+                statement.setInt(
+                        3,
+                        ingredient.getIngredientId()
+                );
+
+                statement.setDouble(
+                        4,
+                        ingredient.getQuantity()
+                );
+
+                statement.executeUpdate();
+
+            } catch (Exception e) {
+
+                System.out.println(
+                        "Could not cache recipe ingredient."
+                );
+            }
+        }
+    }
+
+
+    // =====================================================
+    // Delete recipe ingredient locally
+    // =====================================================
+
+    private void deleteRecipeIngredientFromSQLite(
+            int id
+    ) {
+
+        String sql =
+                "DELETE FROM recipe_ingredients WHERE id = ?";
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setInt(
+                    1,
+                    id
+            );
+
+            statement.executeUpdate();
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "Error deleting recipe ingredient locally."
+            );
+
+            e.printStackTrace();
+        }
+    }
+
+
+    // =====================================================
+    // STOCK DEDUCTION
     // =====================================================
 
     public void reduceIngredientsForSale(
@@ -290,6 +572,10 @@ public class RecipeIngredientService {
         }
     }
 
+
+    // =====================================================
+    // Alias used by existing controllers
+    // =====================================================
 
     public List<RecipeIngredient> getIngredientsForRecipe(
             int recipeId
