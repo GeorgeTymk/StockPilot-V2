@@ -239,7 +239,7 @@
         <!-- ORDERS -->
 
 
-        <VBox GridPane.columnIndex="1" styleClass="dashboard-stat-card" onMouseClicked="#openOrdersFilter">
+        <VBox GridPane.columnIndex="1" styleClass="dashboard-stat-card" onMousePressed="#openOrdersFilter">
 
 
             <HBox spacing="15"

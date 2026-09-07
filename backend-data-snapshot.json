@@ -1,0 +1,68 @@
+﻿{
+    "Products":  {
+                     "value":  [
+
+                               ],
+                     "Count":  0
+                 },
+    "Ingredients":  {
+                        "value":  [
+                                      {
+                                          "name":  "Chicken Breast",
+                                          "quantity":  99.40,
+                                          "unit":  "kg",
+                                          "minimumStock":  20,
+                                          "id":  3
+                                      }
+                                  ],
+                        "Count":  1
+                    },
+    "Purchases":  {
+                      "value":  [
+
+                                ],
+                      "Count":  0
+                  },
+    "Suppliers":  {
+                      "value":  [
+                                    {
+                                        "name":  "Fresh Foods Ltd",
+                                        "phone":  "+265 991 234 567",
+                                        "email":  "sales@freshfoods.com",
+                                        "createdAt":  null,
+                                        "id":  1
+                                    }
+                                ],
+                      "Count":  1
+                  },
+    "Recipes":  {
+                    "value":  [
+                                  {
+                                      "createdAt":  "2026-08-11T15:37:27.877419",
+                                      "description":  "Burger with grilled chicken breast",
+                                      "id":  1,
+                                      "name":  "Chicken Burger",
+                                      "sellingPrice":  9500
+                                  }
+                              ],
+                    "Count":  1
+                },
+    "Sales":  {
+                  "value":  [
+                                {
+                                    "id":  1,
+                                    "quantity":  3,
+                                    "recipe":  {
+                                                   "createdAt":  "2026-08-11T15:37:27.877419",
+                                                   "description":  "Burger with grilled chicken breast",
+                                                   "id":  1,
+                                                   "name":  "Chicken Burger",
+                                                   "sellingPrice":  9500
+                                               },
+                                    "saleDate":  "2026-08-11T15:39:47.27824",
+                                    "total":  28500
+                                }
+                            ],
+                  "Count":  1
+              }
+}

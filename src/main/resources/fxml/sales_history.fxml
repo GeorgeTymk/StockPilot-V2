@@ -4,159 +4,171 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-
 <HBox xmlns="http://javafx.com/javafx/21"
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.stockpilot.controller.SalesHistoryController"
       spacing="0">
 
-
-    <!-- SIDEBAR -->
-
-
-
-
-
-    <!-- PAGE CONTENT -->
-
     <BorderPane HBox.hgrow="ALWAYS"
                 styleClass="page-container">
 
-
-
-        <!-- HEADER -->
-
         <top>
 
-
-            <HBox alignment="CENTER_LEFT"
+            <VBox spacing="12"
                   styleClass="page-header">
 
-
                 <padding>
-
-                    <Insets top="20"
-                            right="25"
+                    <Insets top="25"
+                            right="30"
                             bottom="20"
-                            left="25"/>
-
+                            left="30"/>
                 </padding>
 
 
-
-                <VBox spacing="5">
-
-
-                    <Label text="Sales History"
-                           styleClass="page-title"/>
+                <Label fx:id="periodLabel"
+                       text="Orders — All Time"
+                       styleClass="page-title"/>
 
 
-                    <Label text="View completed restaurant sales"
-                           styleClass="subtitle"/>
+                <Label text="View restaurant orders and sales"
+                       styleClass="subtitle"/>
 
 
-                </VBox>
+                <HBox spacing="12"
+                      alignment="CENTER_LEFT">
+
+                    <TextField fx:id="searchField"
+                               promptText="Search recipe..."
+                               prefWidth="260"/>
 
 
-            </HBox>
+                    <ComboBox fx:id="periodFilter"
+                              prefWidth="180"
+                              promptText="Filter Period"/>
 
+
+                    <Button text="Clear"
+                            onAction="#clearFilters"
+                            styleClass="secondary-button"/>
+
+                </HBox>
+
+            </VBox>
 
         </top>
 
 
-
-
-
-        <!-- CENTER -->
-
         <center>
 
-
-            <VBox spacing="20"
-                  fillWidth="true">
-
+            <VBox spacing="20">
 
                 <padding>
-
-                    <Insets top="25"
-                            right="25"
-                            bottom="25"
-                            left="25"/>
-
+                    <Insets top="20"
+                            right="30"
+                            bottom="20"
+                            left="30"/>
                 </padding>
 
 
+                <!-- SUMMARY -->
+
+                <GridPane hgap="20"
+                          vgap="20">
+
+                    <columnConstraints>
+
+                        <ColumnConstraints percentWidth="33.33"/>
+                        <ColumnConstraints percentWidth="33.33"/>
+                        <ColumnConstraints percentWidth="33.34"/>
+
+                    </columnConstraints>
 
 
+                    <VBox GridPane.columnIndex="0"
+                          styleClass="dashboard-stat-card">
+
+                        <Label text="Sales"
+                               styleClass="stat-heading"/>
+
+                        <Label fx:id="totalSalesLabel"
+                               text="MK 0.00"
+                               styleClass="stat-value"/>
+
+                    </VBox>
+
+
+                    <VBox GridPane.columnIndex="1"
+                          styleClass="dashboard-stat-card">
+
+                        <Label text="Orders"
+                               styleClass="stat-heading"/>
+
+                        <Label fx:id="totalOrdersLabel"
+                               text="0"
+                               styleClass="stat-value"/>
+
+                    </VBox>
+
+
+                    <VBox GridPane.columnIndex="2"
+                          styleClass="dashboard-stat-card">
+
+                        <Label text="Items Sold"
+                               styleClass="stat-heading"/>
+
+                        <Label fx:id="totalItemsLabel"
+                               text="0"
+                               styleClass="stat-value"/>
+
+                    </VBox>
+
+                </GridPane>
+
+
+                <!-- ORDERS -->
 
                 <TableView fx:id="salesTable"
                            VBox.vgrow="ALWAYS">
 
-
-
                     <columns>
 
-
-
                         <TableColumn fx:id="idColumn"
-                                     text="ID"
-                                     prefWidth="80"/>
-
-
+                                     text="Order ID"
+                                     prefWidth="100"/>
 
 
                         <TableColumn fx:id="recipeColumn"
                                      text="Recipe"
-                                     prefWidth="250"/>
-
-
+                                     prefWidth="280"/>
 
 
                         <TableColumn fx:id="quantityColumn"
                                      text="Quantity"
-                                     prefWidth="120"/>
-
-
+                                     prefWidth="130"/>
 
 
                         <TableColumn fx:id="totalColumn"
                                      text="Total"
-                                     prefWidth="150"/>
-
-
+                                     prefWidth="180"/>
 
 
                         <TableColumn fx:id="dateColumn"
-                                     text="Date"
-                                     prefWidth="220"/>
-
-
+                                     text="Date / Time"
+                                     prefWidth="240"/>
 
                     </columns>
-
-
 
                 </TableView>
 
 
+                <!-- ACTIONS -->
 
-
-
-
-
-                <!-- BUTTONS -->
-
-
-                <HBox spacing="15"
+                <HBox spacing="12"
                       alignment="CENTER_LEFT">
-
-
 
                     <Button text="Refresh"
                             onAction="#refreshSales"
                             styleClass="primary-button"/>
-
-
 
 
                     <Button text="Dashboard"
@@ -164,32 +176,16 @@
                             styleClass="secondary-button"/>
 
 
-
-
                     <Button text="Back"
                             onAction="#goBack"
                             styleClass="secondary-button"/>
 
-
-
                 </HBox>
-
-
-
-
 
             </VBox>
 
-
-
-
         </center>
 
-
-
     </BorderPane>
-
-
-
 
 </HBox>

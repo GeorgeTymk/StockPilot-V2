@@ -1185,17 +1185,11 @@ System.out.println("----------------------------");
 
         period.setValue("All Time");
 
-
         DatePicker fromPicker =
-                new DatePicker(
-                        today.minusDays(29)
-                );
+                new DatePicker(today.minusDays(29));
 
         DatePicker toPicker =
-                new DatePicker(
-                        today
-                );
-
+                new DatePicker(today);
 
         GridPane grid =
                 new GridPane();
@@ -1203,64 +1197,26 @@ System.out.println("----------------------------");
         grid.setHgap(12);
         grid.setVgap(12);
 
+        grid.add(new Label("Period"), 0, 0);
+        grid.add(period, 1, 0);
 
-        grid.add(
-                new Label("Period"),
-                0,
-                0
-        );
+        grid.add(new Label("From"), 0, 1);
+        grid.add(fromPicker, 1, 1);
 
-        grid.add(
-                period,
-                1,
-                0
-        );
-
-
-        grid.add(
-                new Label("From"),
-                0,
-                1
-        );
-
-        grid.add(
-                fromPicker,
-                1,
-                1
-        );
-
-
-        grid.add(
-                new Label("To"),
-                0,
-                2
-        );
-
-        grid.add(
-                toPicker,
-                1,
-                2
-        );
-
+        grid.add(new Label("To"), 0, 2);
+        grid.add(toPicker, 1, 2);
 
         Dialog<ButtonType> dialog =
                 new Dialog<>();
 
-        dialog.setTitle(
-                "Orders"
-        );
-
-        dialog.setHeaderText(
-                "Select Order Period"
-        );
-
+        dialog.setTitle("Orders");
+        dialog.setHeaderText("Filter Orders");
 
         ButtonType apply =
                 new ButtonType(
-                        "View Report",
+                        "Apply",
                         ButtonBar.ButtonData.OK_DONE
                 );
-
 
         dialog.getDialogPane()
                 .getButtonTypes()
@@ -1269,115 +1225,95 @@ System.out.println("----------------------------");
                         ButtonType.CANCEL
                 );
 
-
         dialog.getDialogPane()
                 .setContent(grid);
 
+        dialog.showAndWait().ifPresent(result -> {
 
-        dialog.showAndWait()
-                .ifPresent(result -> {
+            if(result != apply){
+                return;
+            }
 
-                    if(result != apply){
-                        return;
-                    }
+            String selected =
+                    period.getValue();
 
+            LocalDate from = null;
+            LocalDate to = null;
 
-                    String selected =
-                            period.getValue();
+            if("Today".equals(selected)){
 
+                from = today;
+                to = today;
 
-                    LocalDate from = null;
-                    LocalDate to = null;
+            }
+            else if("Last 7 Days".equals(selected)){
 
+                from = today.minusDays(6);
+                to = today;
 
-                    if("Today".equals(selected)){
+            }
+            else if("Last 14 Days".equals(selected)){
 
-                        from = today;
-                        to = today;
+                from = today.minusDays(13);
+                to = today;
 
-                    }
-                    else if(
-                            "Last 7 Days".equals(selected)
-                    ){
+            }
+            else if("Last 30 Days".equals(selected)){
 
-                        from =
-                                today.minusDays(6);
+                from = today.minusDays(29);
+                to = today;
 
-                        to = today;
+            }
+            else if("This Month".equals(selected)){
 
-                    }
-                    else if(
-                            "Last 14 Days".equals(selected)
-                    ){
+                from = today.withDayOfMonth(1);
+                to = today;
 
-                        from =
-                                today.minusDays(13);
+            }
+            else if("Custom Range".equals(selected)){
 
-                        to = today;
+                from = fromPicker.getValue();
+                to = toPicker.getValue();
 
-                    }
-                    else if(
-                            "Last 30 Days".equals(selected)
-                    ){
+                if(
+                        from == null
+                        || to == null
+                        || from.isAfter(to)
+                ){
 
-                        from =
-                                today.minusDays(29);
+                    return;
 
-                        to = today;
+                }
 
-                    }
-                    else if(
-                            "This Month".equals(selected)
-                    ){
+            }
 
-                        from =
-                                today.withDayOfMonth(1);
+            int orders;
 
-                        to = today;
+            if("All Time".equals(selected)){
 
-                    }
-                    else if(
-                            "Custom Range".equals(selected)
-                    ){
+                orders =
+                        saleService.getTotalOrders();
 
-                        from =
-                                fromPicker.getValue();
+            }
+            else{
 
-                        to =
-                                toPicker.getValue();
+                orders =
+                        saleService.getOrdersBetween(
+                                from,
+                                to
+                        );
 
+            }
 
-                        if(
-                                from == null
-                                || to == null
-                                || from.isAfter(to)
-                        ){
+            if(totalOrdersLabel != null){
 
-                            return;
+                totalOrdersLabel.setText(
+                        String.valueOf(orders)
+                );
 
-                        }
+            }
 
-                    }
-
-
-                    System.out.println(
-                            "Orders filter selected: "
-                                    + selected
-                    );
-
-
-                    FilteredSalesReportController.setFilter(
-                            from,
-                            to,
-                            selected
-                    );
-
-
-                    Navigator.goTo(
-                            "filtered_sales_report.fxml"
-                    );
-
-                });
+        });
 
     }
 }

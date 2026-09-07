@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+
+<HBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.stockpilot.controller.SalesHistoryController"
+      spacing="0">
+
+
+    <!-- SIDEBAR -->
+
+
+
+
+
+    <!-- PAGE CONTENT -->
+
+    <BorderPane HBox.hgrow="ALWAYS"
+                styleClass="page-container">
+
+
+
+        <!-- HEADER -->
+
+        <top>
+
+
+            <HBox alignment="CENTER_LEFT"
+                  styleClass="page-header">
+
+
+                <padding>
+
+                    <Insets top="20"
+                            right="25"
+                            bottom="20"
+                            left="25"/>
+
+                </padding>
+
+
+
+                <VBox spacing="5">
+
+
+                    <Label text="Sales History"
+                           styleClass="page-title"/>
+
+
+                    <Label text="View completed restaurant sales"
+                           styleClass="subtitle"/>
+
+
+                </VBox>
+
+
+            </HBox>
+
+
+        </top>
+
+
+
+
+
+        <!-- CENTER -->
+
+        <center>
+
+
+            <VBox spacing="20"
+                  fillWidth="true">
+
+
+                <padding>
+
+                    <Insets top="25"
+                            right="25"
+                            bottom="25"
+                            left="25"/>
+
+                </padding>
+
+
+
+
+
+                <TableView fx:id="salesTable"
+                           VBox.vgrow="ALWAYS">
+
+
+
+                    <columns>
+
+
+
+                        <TableColumn fx:id="idColumn"
+                                     text="ID"
+                                     prefWidth="80"/>
+
+
+
+
+                        <TableColumn fx:id="recipeColumn"
+                                     text="Recipe"
+                                     prefWidth="250"/>
+
+
+
+
+                        <TableColumn fx:id="quantityColumn"
+                                     text="Quantity"
+                                     prefWidth="120"/>
+
+
+
+
+                        <TableColumn fx:id="totalColumn"
+                                     text="Total"
+                                     prefWidth="150"/>
+
+
+
+
+                        <TableColumn fx:id="dateColumn"
+                                     text="Date"
+                                     prefWidth="220"/>
+
+
+
+                    </columns>
+
+
+
+                </TableView>
+
+
+
+
+
+
+
+                <!-- BUTTONS -->
+
+
+                <HBox spacing="15"
+                      alignment="CENTER_LEFT">
+
+
+
+                    <Button text="Refresh"
+                            onAction="#refreshSales"
+                            styleClass="primary-button"/>
+
+
+
+
+                    <Button text="Dashboard"
+                            onAction="#openDashboard"
+                            styleClass="secondary-button"/>
+
+
+
+
+                    <Button text="Back"
+                            onAction="#goBack"
+                            styleClass="secondary-button"/>
+
+
+
+                </HBox>
+
+
+
+
+
+            </VBox>
+
+
+
+
+        </center>
+
+
+
+    </BorderPane>
+
+
+
+
+</HBox>
