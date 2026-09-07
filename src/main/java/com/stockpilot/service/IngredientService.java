@@ -3,9 +3,14 @@ package com.stockpilot.service;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.stockpilot.api.ApiClient;
+import com.stockpilot.database.Database;
 import com.stockpilot.model.Ingredient;
 
 import java.lang.reflect.Type;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +31,7 @@ public class IngredientService {
 
     // =====================================================
     // GET ALL INGREDIENTS
-    // GET /api/ingredients
+    // API FIRST -> SQLITE FALLBACK
     // =====================================================
 
     public List<Ingredient> getAllIngredients() {
@@ -43,9 +48,11 @@ public class IngredientService {
                     gson.fromJson(json, listType);
 
             if (ingredients == null) {
-
                 return new ArrayList<>();
             }
+
+            // Keep SQLite cache updated when API is available.
+            cacheIngredients(ingredients);
 
             System.out.println(
                     "Ingredients loaded from backend: "
@@ -58,18 +65,16 @@ public class IngredientService {
         catch (Exception e) {
 
             System.out.println(
-                    "Error loading ingredients from backend"
+                    "Backend unavailable. Loading ingredients from SQLite."
             );
 
-            e.printStackTrace();
-
-            return new ArrayList<>();
+            return getLocalIngredients();
         }
     }
 
     // =====================================================
     // GET INGREDIENT BY ID
-    // GET /api/ingredients/{id}
+    // API FIRST -> SQLITE FALLBACK
     // =====================================================
 
     public Ingredient getIngredientById(int id) {
@@ -81,21 +86,26 @@ public class IngredientService {
                             "/ingredients/" + id
                     );
 
-            return gson.fromJson(
-                    json,
-                    Ingredient.class
-            );
+            Ingredient ingredient =
+                    gson.fromJson(
+                            json,
+                            Ingredient.class
+                    );
+
+            if (ingredient != null) {
+                cacheIngredient(ingredient);
+            }
+
+            return ingredient;
 
         }
         catch (Exception e) {
 
             System.out.println(
-                    "Error loading ingredient from backend"
+                    "Backend unavailable. Loading ingredient locally."
             );
 
-            e.printStackTrace();
-
-            return null;
+            return getLocalIngredient(id);
         }
     }
 
@@ -193,7 +203,7 @@ public class IngredientService {
 
     // =====================================================
     // ADD INGREDIENT
-    // POST /api/ingredients
+    // API FIRST -> SQLITE FALLBACK
     // =====================================================
 
     public Ingredient addIngredient(
@@ -222,31 +232,42 @@ public class IngredientService {
                             json
                     );
 
-            System.out.println(
-                    "Ingredient created through backend"
-            );
+            Ingredient saved =
+                    gson.fromJson(
+                            response,
+                            Ingredient.class
+                    );
 
-            return gson.fromJson(
-                    response,
-                    Ingredient.class
-            );
+            if (saved != null) {
+
+                cacheIngredient(saved);
+
+                System.out.println(
+                        "Ingredient created through backend"
+                );
+
+                return saved;
+            }
 
         }
         catch (Exception e) {
 
             System.out.println(
-                    "Error creating ingredient through backend"
+                    "Backend unavailable. Saving ingredient locally."
             );
-
-            e.printStackTrace();
-
-            return null;
         }
+
+        return addLocalIngredient(
+                name,
+                quantity,
+                unit,
+                minimumStock
+        );
     }
 
     // =====================================================
     // ADD STOCK
-    // PUT /api/ingredients/{id}
+    // API FIRST -> SQLITE FALLBACK
     // =====================================================
 
     public void addStock(
@@ -254,27 +275,25 @@ public class IngredientService {
             double quantity
     ) {
 
-        try {
+        Ingredient ingredient =
+                getIngredientById(ingredientId);
 
-            Ingredient ingredient =
-                    getIngredientById(ingredientId);
+        if (ingredient == null) {
 
-            if (ingredient == null) {
-
-                System.out.println(
-                        "Ingredient not found"
-                );
-
-                return;
-            }
-
-            double newQuantity =
-                    ingredient.getQuantity()
-                            + quantity;
-
-            ingredient.setQuantity(
-                    newQuantity
+            System.out.println(
+                    "Ingredient not found"
             );
+
+            return;
+        }
+
+        double newQuantity =
+                ingredient.getQuantity()
+                        + quantity;
+
+        ingredient.setQuantity(newQuantity);
+
+        try {
 
             String json =
                     gson.toJson(ingredient);
@@ -284,6 +303,8 @@ public class IngredientService {
                     json
             );
 
+            cacheIngredient(ingredient);
+
             System.out.println(
                     "Stock updated through backend"
             );
@@ -292,16 +313,16 @@ public class IngredientService {
         catch (Exception e) {
 
             System.out.println(
-                    "Error updating ingredient stock"
+                    "Backend unavailable. Updating stock locally."
             );
 
-            e.printStackTrace();
+            updateLocalIngredient(ingredient);
         }
     }
 
     // =====================================================
     // UPDATE INGREDIENT
-    // PUT /api/ingredients/{id}
+    // API FIRST -> SQLITE FALLBACK
     // =====================================================
 
     public Ingredient updateIngredient(
@@ -320,57 +341,478 @@ public class IngredientService {
                             json
                     );
 
+            Ingredient updated =
+                    gson.fromJson(
+                            response,
+                            Ingredient.class
+                    );
+
+            if (updated != null) {
+
+                cacheIngredient(updated);
+
+                System.out.println(
+                        "Ingredient updated through backend"
+                );
+
+                return updated;
+            }
+
+        }
+        catch (Exception e) {
+
             System.out.println(
-                    "Ingredient updated through backend"
+                    "Backend unavailable. Updating ingredient locally."
+            );
+        }
+
+        updateLocalIngredient(ingredient);
+
+        return ingredient;
+    }
+
+    // =====================================================
+    // DELETE INGREDIENT
+    // API + SQLITE
+    // =====================================================
+
+    public void deleteIngredient(
+            int ingredientId
+    ) {
+
+        try {
+
+            ApiClient.delete(
+                    "/ingredients/" + ingredientId
             );
 
-            return gson.fromJson(
-                    response,
-                    Ingredient.class
+            System.out.println(
+                    "Ingredient deleted through backend"
             );
 
         }
         catch (Exception e) {
 
             System.out.println(
-                    "Error updating ingredient through backend"
+                    "Backend unavailable. Deleting ingredient locally."
+            );
+        }
+
+        deleteLocalIngredient(ingredientId);
+    }
+
+    // =====================================================
+    // SQLITE - GET ALL
+    // =====================================================
+
+    private List<Ingredient> getLocalIngredients() {
+
+        List<Ingredient> ingredients =
+                new ArrayList<>();
+
+        String sql =
+                "SELECT id, name, quantity, unit, minimum_stock " +
+                "FROM ingredients ORDER BY name";
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql);
+
+                ResultSet resultSet =
+                        statement.executeQuery()
+        ) {
+
+            while (resultSet.next()) {
+
+                ingredients.add(
+                        mapIngredient(resultSet)
+                );
+            }
+
+            System.out.println(
+                    "Ingredients loaded from SQLite: "
+                            + ingredients.size()
+            );
+
+        }
+        catch (Exception e) {
+
+            System.out.println(
+                    "Error loading ingredients from SQLite"
             );
 
             e.printStackTrace();
+        }
 
-            return null;
+        return ingredients;
+    }
+
+    // =====================================================
+    // SQLITE - GET ONE
+    // =====================================================
+
+    private Ingredient getLocalIngredient(int id) {
+
+        String sql =
+                "SELECT id, name, quantity, unit, minimum_stock " +
+                "FROM ingredients WHERE id = ?";
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setInt(1, id);
+
+            try (
+                    ResultSet resultSet =
+                            statement.executeQuery()
+            ) {
+
+                if (resultSet.next()) {
+
+                    return mapIngredient(resultSet);
+                }
+            }
+
+        }
+        catch (Exception e) {
+
+            System.out.println(
+                    "Error loading local ingredient"
+            );
+
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    // =====================================================
+    // SQLITE - ADD
+    // =====================================================
+
+    private Ingredient addLocalIngredient(
+            String name,
+            double quantity,
+            String unit,
+            double minimumStock
+    ) {
+
+        String sql =
+                "INSERT INTO ingredients " +
+                "(name, quantity, unit, minimum_stock) " +
+                "VALUES (?, ?, ?, ?)";
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(
+                                sql,
+                                Statement.RETURN_GENERATED_KEYS
+                        )
+        ) {
+
+            statement.setString(1, name);
+            statement.setDouble(2, quantity);
+            statement.setString(3, unit);
+            statement.setDouble(4, minimumStock);
+
+            statement.executeUpdate();
+
+            try (
+                    ResultSet keys =
+                            statement.getGeneratedKeys()
+            ) {
+
+                if (keys.next()) {
+
+                    int id =
+                            keys.getInt(1);
+
+                    System.out.println(
+                            "Ingredient saved locally: "
+                                    + name
+                    );
+
+                    return new Ingredient(
+                            id,
+                            name,
+                            quantity,
+                            unit,
+                            minimumStock
+                    );
+                }
+            }
+
+        }
+        catch (Exception e) {
+
+            System.out.println(
+                    "Error saving ingredient locally"
+            );
+
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    // =====================================================
+    // SQLITE - UPDATE
+    // =====================================================
+
+    private void updateLocalIngredient(
+            Ingredient ingredient
+    ) {
+
+        String sql =
+                "UPDATE ingredients SET " +
+                "name = ?, " +
+                "quantity = ?, " +
+                "unit = ?, " +
+                "minimum_stock = ? " +
+                "WHERE id = ?";
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(
+                    1,
+                    ingredient.getName()
+            );
+
+            statement.setDouble(
+                    2,
+                    ingredient.getQuantity()
+            );
+
+            statement.setString(
+                    3,
+                    ingredient.getUnit()
+            );
+
+            statement.setDouble(
+                    4,
+                    ingredient.getMinimumStock()
+            );
+
+            statement.setInt(
+                    5,
+                    ingredient.getId()
+            );
+
+            statement.executeUpdate();
+
+        }
+        catch (Exception e) {
+
+            System.out.println(
+                    "Error updating ingredient locally"
+            );
+
+            e.printStackTrace();
         }
     }
 
     // =====================================================
-// DELETE INGREDIENT
-// DELETE /api/ingredients/{id}
-// =====================================================
+    // SQLITE - DELETE
+    // =====================================================
 
-public void deleteIngredient(
-        int ingredientId
-) {
+    private void deleteLocalIngredient(
+            int ingredientId
+    ) {
 
-    try {
+        String sql =
+                "DELETE FROM ingredients WHERE id = ?";
 
-        ApiClient.delete(
-                "/ingredients/" + ingredientId
-        );
+        try (
+                Connection connection =
+                        Database.connect();
 
-        System.out.println(
-                "Ingredient deleted through backend"
-        );
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
 
+            statement.setInt(
+                    1,
+                    ingredientId
+            );
+
+            statement.executeUpdate();
+
+        }
+        catch (Exception e) {
+
+            System.out.println(
+                    "Error deleting ingredient locally"
+            );
+
+            e.printStackTrace();
+        }
     }
-    catch (Exception e) {
 
-        System.out.println(
-                "Error deleting ingredient through backend"
-        );
+    // =====================================================
+    // SQLITE - CACHE ONE
+    // =====================================================
 
-        e.printStackTrace();
+    private void cacheIngredient(
+            Ingredient ingredient
+    ) {
+
+        if (ingredient == null) {
+            return;
+        }
+
+        String updateSql =
+                "UPDATE ingredients SET " +
+                "name = ?, " +
+                "quantity = ?, " +
+                "unit = ?, " +
+                "minimum_stock = ? " +
+                "WHERE id = ?";
+
+        String insertSql =
+                "INSERT INTO ingredients " +
+                "(id, name, quantity, unit, minimum_stock) " +
+                "VALUES (?, ?, ?, ?, ?)";
+
+        try (
+                Connection connection =
+                        Database.connect()
+        ) {
+
+            try (
+                    PreparedStatement update =
+                            connection.prepareStatement(
+                                    updateSql
+                            )
+            ) {
+
+                update.setString(
+                        1,
+                        ingredient.getName()
+                );
+
+                update.setDouble(
+                        2,
+                        ingredient.getQuantity()
+                );
+
+                update.setString(
+                        3,
+                        ingredient.getUnit()
+                );
+
+                update.setDouble(
+                        4,
+                        ingredient.getMinimumStock()
+                );
+
+                update.setInt(
+                        5,
+                        ingredient.getId()
+                );
+
+                int rows =
+                        update.executeUpdate();
+
+                if (rows == 0) {
+
+                    try (
+                            PreparedStatement insert =
+                                    connection.prepareStatement(
+                                            insertSql
+                                    )
+                    ) {
+
+                        insert.setInt(
+                                1,
+                                ingredient.getId()
+                        );
+
+                        insert.setString(
+                                2,
+                                ingredient.getName()
+                        );
+
+                        insert.setDouble(
+                                3,
+                                ingredient.getQuantity()
+                        );
+
+                        insert.setString(
+                                4,
+                                ingredient.getUnit()
+                        );
+
+                        insert.setDouble(
+                                5,
+                                ingredient.getMinimumStock()
+                        );
+
+                        insert.executeUpdate();
+                    }
+                }
+            }
+
+        }
+        catch (Exception e) {
+
+            System.out.println(
+                    "Could not cache ingredient locally: "
+                            + e.getMessage()
+            );
+        }
     }
-}
+
+    // =====================================================
+    // SQLITE - CACHE ALL
+    // =====================================================
+
+    private void cacheIngredients(
+            List<Ingredient> ingredients
+    ) {
+
+        if (ingredients == null) {
+            return;
+        }
+
+        for (Ingredient ingredient : ingredients) {
+
+            cacheIngredient(ingredient);
+        }
+    }
+
+    // =====================================================
+    // DATABASE MAPPING
+    // =====================================================
+
+    private Ingredient mapIngredient(
+            ResultSet resultSet
+    ) throws Exception {
+
+        return new Ingredient(
+                resultSet.getInt("id"),
+                resultSet.getString("name"),
+                resultSet.getDouble("quantity"),
+                resultSet.getString("unit"),
+                resultSet.getDouble("minimum_stock")
+        );
+    }
 
     // =====================================================
     // REQUEST OBJECT

@@ -1,5 +1,11 @@
 package com.stockpilot.service;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.stockpilot.api.ApiClient;
 import com.stockpilot.database.Database;
 import com.stockpilot.model.RecipeIngredient;
 
@@ -11,60 +17,53 @@ import java.util.List;
 
 public class RecipeIngredientService {
 
+    private final Gson gson = new Gson();
+
+    // =====================================================
+    // Add ingredient to recipe
+    // POST /api/recipe-ingredients
+    // =====================================================
+
     public void addIngredientToRecipe(
             int recipeId,
             int ingredientId,
             double quantity
     ) {
 
-        String sql =
-                """
-                INSERT INTO recipe_ingredients
-                (recipe_id, ingredient_id, quantity_used)
-                VALUES (?, ?, ?)
-                """;
+        try {
 
-        try (
-                Connection connection = Database.connect();
+            String endpoint =
+                    "/recipe-ingredients"
+                    + "?recipeId=" + recipeId
+                    + "&ingredientId=" + ingredientId
+                    + "&quantityUsed=" + quantity;
 
-                PreparedStatement statement =
-                        connection.prepareStatement(sql)
-        ) {
-
-            statement.setInt(
-                    1,
-                    recipeId
-            );
-
-            statement.setInt(
-                    2,
-                    ingredientId
-            );
-
-            statement.setDouble(
-                    3,
-                    quantity
-            );
-
-            int rows =
-                    statement.executeUpdate();
+            String response =
+                    ApiClient.post(
+                            endpoint,
+                            "{}"
+                    );
 
             System.out.println(
-                    "Ingredient added to recipe. Rows affected: "
-                            + rows
+                    "Ingredient added through backend: "
+                            + response
             );
 
         } catch (Exception e) {
 
             System.out.println(
-                    "Error adding ingredient to recipe."
+                    "Error adding ingredient through backend."
             );
 
             e.printStackTrace();
-
         }
-
     }
+
+
+    // =====================================================
+    // Get ingredients for recipe
+    // GET /api/recipe-ingredients/recipe/{recipeId}
+    // =====================================================
 
     public List<RecipeIngredient> getRecipeIngredients(
             int recipeId
@@ -73,27 +72,137 @@ public class RecipeIngredientService {
         List<RecipeIngredient> ingredients =
                 new ArrayList<>();
 
+        try {
+
+            String json =
+                    ApiClient.get(
+                            "/recipe-ingredients/recipe/"
+                                    + recipeId
+                    );
+
+            JsonArray array =
+                    JsonParser.parseString(json)
+                            .getAsJsonArray();
+
+            for (JsonElement element : array) {
+
+                JsonObject item =
+                        element.getAsJsonObject();
+
+                int id =
+                        item.get("id")
+                                .getAsInt();
+
+                double quantity =
+                        item.get("quantityUsed")
+                                .getAsDouble();
+
+                JsonObject recipe =
+                        item.getAsJsonObject("recipe");
+
+                JsonObject ingredient =
+                        item.getAsJsonObject("ingredient");
+
+                int recipeIdFromApi =
+                        recipe.get("id")
+                                .getAsInt();
+
+                int ingredientId =
+                        ingredient.get("id")
+                                .getAsInt();
+
+                String ingredientName =
+                        ingredient.get("name")
+                                .getAsString();
+
+                String unit =
+                        ingredient.get("unit")
+                                .getAsString();
+
+                ingredients.add(
+                        new RecipeIngredient(
+                                id,
+                                recipeIdFromApi,
+                                ingredientId,
+                                ingredientName,
+                                quantity,
+                                unit
+                        )
+                );
+            }
+
+            System.out.println(
+                    "Recipe ingredients loaded from backend: "
+                            + ingredients.size()
+            );
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "Error loading recipe ingredients from backend."
+            );
+
+            e.printStackTrace();
+        }
+
+        return ingredients;
+    }
+
+
+    // =====================================================
+    // Remove ingredient from recipe
+    // DELETE /api/recipe-ingredients/{id}
+    // =====================================================
+
+    public void removeIngredientFromRecipe(
+            int id
+    ) {
+
+        try {
+
+            ApiClient.delete(
+                    "/recipe-ingredients/" + id
+            );
+
+            System.out.println(
+                    "Ingredient removed through backend."
+            );
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "Error removing ingredient through backend."
+            );
+
+            e.printStackTrace();
+        }
+    }
+
+
+    // =====================================================
+    // TEMPORARY STOCK DEDUCTION
+    //
+    // Still uses SQLite because the backend does not yet
+    // expose the stock-deduction endpoint.
+    // =====================================================
+
+    public void reduceIngredientsForSale(
+            int recipeId,
+            int soldQuantity
+    ) {
+
         String sql =
                 """
                 SELECT
-                    ri.id,
-                    ri.recipe_id,
-                    i.id AS ingredient_id,
-                    i.name,
-                    ri.quantity_used,
-                    i.unit
-
-                FROM recipe_ingredients ri
-
-                JOIN ingredients i
-
-                ON ri.ingredient_id = i.id
-
-                WHERE ri.recipe_id = ?
+                    ingredient_id,
+                    quantity_used
+                FROM recipe_ingredients
+                WHERE recipe_id = ?
                 """;
 
         try (
-                Connection connection = Database.connect();
+                Connection connection =
+                        Database.connect();
 
                 PreparedStatement statement =
                         connection.prepareStatement(sql)
@@ -109,241 +218,83 @@ public class RecipeIngredientService {
 
             while (result.next()) {
 
-                ingredients.add(
+                int ingredientId =
+                        result.getInt(
+                                "ingredient_id"
+                        );
 
-                        new RecipeIngredient(
+                double amountUsed =
+                        result.getDouble(
+                                "quantity_used"
+                        );
 
-                                result.getInt("id"),
+                double totalReduction =
+                        amountUsed * soldQuantity;
 
-                                result.getInt("recipe_id"),
-
-                                result.getInt("ingredient_id"),
-
-                                result.getString("name"),
-
-                                result.getDouble("quantity_used"),
-
-                                result.getString("unit")
-
-                        )
-
+                updateIngredientStock(
+                        ingredientId,
+                        totalReduction
                 );
-
             }
-
-            System.out.println(
-                    "Recipe ingredients loaded: "
-                            + ingredients.size()
-            );
 
         } catch (Exception e) {
 
             System.out.println(
-                    "Error loading recipe ingredients."
+                    "Error reducing ingredients for sale."
             );
 
             e.printStackTrace();
-
         }
-
-        return ingredients;
-
-    }
-
-public void reduceIngredientsForSale(
-        int recipeId,
-        int soldQuantity
-) {
-
-
-    String sql =
-            """
-            SELECT
-                ingredient_id,
-                quantity_used
-
-            FROM recipe_ingredients
-
-            WHERE recipe_id = ?
-            """;
-
-
-
-    try(
-            Connection connection = Database.connect();
-
-            PreparedStatement statement =
-                    connection.prepareStatement(sql)
-
-    ){
-
-
-        statement.setInt(
-                1,
-                recipeId
-        );
-
-
-        ResultSet result =
-                statement.executeQuery();
-
-
-
-        while(result.next()){
-
-
-            int ingredientId =
-                    result.getInt(
-                            "ingredient_id"
-                    );
-
-
-            double amountUsed =
-                    result.getDouble(
-                            "quantity_used"
-                    );
-
-
-
-            double totalReduction =
-                    amountUsed * soldQuantity;
-
-
-
-            updateIngredientStock(
-
-                    ingredientId,
-
-                    totalReduction
-
-            );
-
-
-        }
-
-
-
-    }catch(Exception e){
-
-        e.printStackTrace();
-
     }
 
 
-}
-
-
-
-
-
-
-
-private void updateIngredientStock(
-        int ingredientId,
-        double amount
-){
-
-
-    String sql =
-            """
-            UPDATE ingredients
-
-            SET quantity = quantity - ?
-
-            WHERE id = ?
-            """;
-
-
-
-    try(
-
-            Connection connection =
-                    Database.connect();
-
-            PreparedStatement statement =
-                    connection.prepareStatement(sql)
-
-    ){
-
-
-        statement.setDouble(
-                1,
-                amount
-        );
-
-
-        statement.setInt(
-                2,
-                ingredientId
-        );
-
-
-        statement.executeUpdate();
-
-
-
-    }catch(Exception e){
-
-        e.printStackTrace();
-
-    }
-
-
-}
-
-    public void removeIngredientFromRecipe(
-            int id
+    private void updateIngredientStock(
+            int ingredientId,
+            double amount
     ) {
 
         String sql =
                 """
-                DELETE FROM recipe_ingredients
+                UPDATE ingredients
+                SET quantity = quantity - ?
                 WHERE id = ?
                 """;
 
         try (
-                Connection connection = Database.connect();
+                Connection connection =
+                        Database.connect();
 
                 PreparedStatement statement =
                         connection.prepareStatement(sql)
         ) {
 
-            statement.setInt(
+            statement.setDouble(
                     1,
-                    id
+                    amount
             );
 
-            int rows =
-                    statement.executeUpdate();
-
-            System.out.println(
-                    "Ingredient removed. Rows affected: "
-                            + rows
+            statement.setInt(
+                    2,
+                    ingredientId
             );
+
+            statement.executeUpdate();
 
         } catch (Exception e) {
 
             System.out.println(
-                    "Error removing ingredient."
+                    "Error updating ingredient stock."
             );
 
             e.printStackTrace();
-
         }
-
     }
 
-    // =====================================================
-    // Returns every ingredient used by a specific recipe.
-    // Used when deducting inventory after a sale.
-    // =====================================================
 
     public List<RecipeIngredient> getIngredientsForRecipe(
             int recipeId
     ) {
 
         return getRecipeIngredients(recipeId);
-
     }
-
 }
