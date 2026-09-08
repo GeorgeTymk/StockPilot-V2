@@ -5,7 +5,6 @@ import com.google.gson.reflect.TypeToken;
 import com.stockpilot.api.ApiClient;
 import com.stockpilot.database.Database;
 import com.stockpilot.model.Ingredient;
-import com.stockpilot.sync.SyncDatabase;
 
 import java.lang.reflect.Type;
 import java.sql.Connection;
@@ -258,25 +257,12 @@ public class IngredientService {
             );
         }
 
-        Ingredient localIngredient = addLocalIngredient(
+        return addLocalIngredient(
                 name,
                 quantity,
                 unit,
                 minimumStock
         );
-
-        if (localIngredient != null) {
-
-            SyncDatabase.addToQueue(
-                    "INGREDIENT",
-                    "CREATE",
-                    (long) localIngredient.getId(),
-                    null,
-                    gson.toJson(localIngredient)
-            );
-        }
-
-        return localIngredient;
     }
 
     // =====================================================
@@ -382,17 +368,6 @@ public class IngredientService {
 
         updateLocalIngredient(ingredient);
 
-        SyncDatabase.addToQueue(
-                "INGREDIENT",
-                "UPDATE",
-                (long) ingredient.getId(),
-                SyncDatabase.getServerId(
-                        "INGREDIENT",
-                        (long) ingredient.getId()
-                ),
-                gson.toJson(ingredient)
-        );
-
         return ingredient;
     }
 
@@ -421,24 +396,6 @@ public class IngredientService {
             System.out.println(
                     "Backend unavailable. Deleting ingredient locally."
             );
-
-            Long serverId =
-                    SyncDatabase.getServerId(
-                            "INGREDIENT",
-                            (long) ingredientId
-                    );
-
-            deleteLocalIngredient(ingredientId);
-
-            SyncDatabase.addToQueue(
-                    "INGREDIENT",
-                    "DELETE",
-                    (long) ingredientId,
-                    serverId,
-                    "{\"id\":" + ingredientId + "}"
-            );
-
-            return;
         }
 
         deleteLocalIngredient(ingredientId);

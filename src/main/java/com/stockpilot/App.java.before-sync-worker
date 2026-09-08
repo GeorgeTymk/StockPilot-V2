@@ -4,7 +4,6 @@ import atlantafx.base.theme.PrimerLight;
 import com.stockpilot.database.DatabaseInitializer;
 import com.stockpilot.database.UserSeeder;
 import com.stockpilot.util.Navigator;
-import com.stockpilot.sync.SyncWorker;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -14,14 +13,11 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 public class App extends Application {
 
-    private final SyncWorker syncWorker = new SyncWorker();
-
     @Override
     public void start(Stage stage) throws Exception {
 
         // Initialize database on every startup
         DatabaseInitializer.createTables();
-        syncWorker.start();
         UserSeeder.createAdmin();
 
         // Force-load FontAwesome

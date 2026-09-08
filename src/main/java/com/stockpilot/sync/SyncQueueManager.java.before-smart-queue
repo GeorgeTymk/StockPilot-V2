@@ -1,0 +1,745 @@
+package com.stockpilot.sync;
+
+import com.stockpilot.database.Database;
+
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.util.ArrayList;
+import java.util.List;
+
+public class SyncQueueManager {
+
+    // =====================================================
+    // SYNC STATUS
+    // =====================================================
+
+    public static final String PENDING = "PENDING";
+    public static final String PROCESSING = "PROCESSING";
+    public static final String SYNCED = "SYNCED";
+    public static final String FAILED = "FAILED";
+
+    // =====================================================
+    // SYNC OPERATION MODEL
+    // =====================================================
+
+    public static class SyncOperation {
+
+        private int id;
+        private String operationId;
+        private String entityType;
+        private String operation;
+        private Integer localId;
+        private Integer serverId;
+        private String payload;
+        private String status;
+        private int retryCount;
+        private String createdAt;
+        private String lastAttempt;
+        private String errorMessage;
+
+        public int getId() {
+            return id;
+        }
+
+        public String getOperationId() {
+            return operationId;
+        }
+
+        public String getEntityType() {
+            return entityType;
+        }
+
+        public String getOperation() {
+            return operation;
+        }
+
+        public Integer getLocalId() {
+            return localId;
+        }
+
+        public Integer getServerId() {
+            return serverId;
+        }
+
+        public String getPayload() {
+            return payload;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public int getRetryCount() {
+            return retryCount;
+        }
+
+        public String getCreatedAt() {
+            return createdAt;
+        }
+
+        public String getLastAttempt() {
+            return lastAttempt;
+        }
+
+        public String getErrorMessage() {
+            return errorMessage;
+        }
+
+        private static SyncOperation fromResultSet(ResultSet rs)
+                throws Exception {
+
+            SyncOperation operation = new SyncOperation();
+
+            operation.id =
+                    rs.getInt("id");
+
+            operation.operationId =
+                    rs.getString("operation_id");
+
+            operation.entityType =
+                    rs.getString("entity_type");
+
+            operation.operation =
+                    rs.getString("operation");
+
+            int localId =
+                    rs.getInt("local_id");
+
+            operation.localId =
+                    rs.wasNull() ? null : localId;
+
+            int serverId =
+                    rs.getInt("server_id");
+
+            operation.serverId =
+                    rs.wasNull() ? null : serverId;
+
+            operation.payload =
+                    rs.getString("payload");
+
+            operation.status =
+                    rs.getString("status");
+
+            operation.retryCount =
+                    rs.getInt("retry_count");
+
+            operation.createdAt =
+                    rs.getString("created_at");
+
+            operation.lastAttempt =
+                    rs.getString("last_attempt");
+
+            operation.errorMessage =
+                    rs.getString("error_message");
+
+            return operation;
+        }
+    }
+
+    // =====================================================
+    // GET PENDING OPERATIONS
+    // =====================================================
+
+    public static List<SyncOperation> getPendingOperations(
+            int limit
+    ) {
+
+        List<SyncOperation> operations =
+                new ArrayList<>();
+
+        String sql = """
+            SELECT
+                id,
+                operation_id,
+                entity_type,
+                operation,
+                local_id,
+                server_id,
+                payload,
+                status,
+                retry_count,
+                created_at,
+                last_attempt,
+                error_message
+            FROM sync_queue
+            WHERE status = ?
+            ORDER BY id ASC
+            LIMIT ?
+        """;
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(
+                    1,
+                    PENDING
+            );
+
+            statement.setInt(
+                    2,
+                    limit
+            );
+
+            try (
+                    ResultSet rs =
+                            statement.executeQuery()
+            ) {
+
+                while (rs.next()) {
+
+                    operations.add(
+                            SyncOperation.fromResultSet(rs)
+                    );
+                }
+            }
+
+        }
+        catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Failed to load pending sync operations: "
+                            + e.getMessage(),
+                    e
+            );
+        }
+
+        return operations;
+    }
+
+    // =====================================================
+    // GET SINGLE OPERATION
+    // =====================================================
+
+    public static SyncOperation getOperation(
+            int id
+    ) {
+
+        String sql = """
+            SELECT
+                id,
+                operation_id,
+                entity_type,
+                operation,
+                local_id,
+                server_id,
+                payload,
+                status,
+                retry_count,
+                created_at,
+                last_attempt,
+                error_message
+            FROM sync_queue
+            WHERE id = ?
+        """;
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setInt(
+                    1,
+                    id
+            );
+
+            try (
+                    ResultSet rs =
+                            statement.executeQuery()
+            ) {
+
+                if (rs.next()) {
+
+                    return SyncOperation.fromResultSet(rs);
+                }
+            }
+
+        }
+        catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Failed to load sync operation: "
+                            + e.getMessage(),
+                    e
+            );
+        }
+
+        return null;
+    }
+
+    // =====================================================
+    // MARK OPERATION AS PROCESSING
+    // =====================================================
+
+    public static void markProcessing(
+            int id
+    ) {
+
+        String sql = """
+            UPDATE sync_queue
+            SET
+                status = ?,
+                last_attempt = CURRENT_TIMESTAMP,
+                error_message = NULL
+            WHERE id = ?
+        """;
+
+        executeStatusUpdate(
+                sql,
+                PROCESSING,
+                id
+        );
+    }
+
+    // =====================================================
+    // MARK OPERATION AS SYNCED
+    // =====================================================
+
+    public static void markSynced(
+            int id,
+            Integer serverId
+    ) {
+
+        String sql = """
+            UPDATE sync_queue
+            SET
+                status = ?,
+                server_id = ?,
+                last_attempt = CURRENT_TIMESTAMP,
+                error_message = NULL
+            WHERE id = ?
+        """;
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(
+                    1,
+                    SYNCED
+            );
+
+            if (serverId == null) {
+
+                statement.setNull(
+                        2,
+                        java.sql.Types.INTEGER
+                );
+
+            }
+            else {
+
+                statement.setInt(
+                        2,
+                        serverId
+                );
+            }
+
+            statement.setInt(
+                    3,
+                    id
+            );
+
+            statement.executeUpdate();
+
+        }
+        catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Failed to mark sync operation as synced: "
+                            + e.getMessage(),
+                    e
+            );
+        }
+    }
+
+    // =====================================================
+    // MARK OPERATION AS FAILED
+    // =====================================================
+
+    public static void markFailed(
+            int id,
+            String errorMessage
+    ) {
+
+        String sql = """
+            UPDATE sync_queue
+            SET
+                status = ?,
+                retry_count = retry_count + 1,
+                last_attempt = CURRENT_TIMESTAMP,
+                error_message = ?
+            WHERE id = ?
+        """;
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(
+                    1,
+                    FAILED
+            );
+
+            statement.setString(
+                    2,
+                    errorMessage
+            );
+
+            statement.setInt(
+                    3,
+                    id
+            );
+
+            statement.executeUpdate();
+
+        }
+        catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Failed to mark sync operation as failed: "
+                            + e.getMessage(),
+                    e
+            );
+        }
+    }
+
+    // =====================================================
+    // RETURN FAILED OPERATION TO PENDING
+    // =====================================================
+
+    public static void retryOperation(
+            int id
+    ) {
+
+        String sql = """
+            UPDATE sync_queue
+            SET
+                status = ?,
+                error_message = NULL
+            WHERE id = ?
+        """;
+
+        executeStatusUpdate(
+                sql,
+                PENDING,
+                id
+        );
+    }
+
+    // =====================================================
+    // RETRY ALL FAILED OPERATIONS
+    // =====================================================
+
+    public static int retryFailedOperations() {
+
+        String sql = """
+            UPDATE sync_queue
+            SET
+                status = ?,
+                error_message = NULL
+            WHERE status = ?
+        """;
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(
+                    1,
+                    PENDING
+            );
+
+            statement.setString(
+                    2,
+                    FAILED
+            );
+
+            return statement.executeUpdate();
+
+        }
+        catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Failed to retry sync operations: "
+                            + e.getMessage(),
+                    e
+            );
+        }
+    }
+
+    // =====================================================
+    // PENDING COUNT
+    // =====================================================
+
+    public static int getPendingCount() {
+
+        return SyncDatabase.getPendingCount();
+    }
+
+    // =====================================================
+    // FAILED COUNT
+    // =====================================================
+
+    public static int getFailedCount() {
+
+        String sql = """
+            SELECT COUNT(*)
+            FROM sync_queue
+            WHERE status = ?
+        """;
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(
+                    1,
+                    FAILED
+            );
+
+            try (
+                    ResultSet rs =
+                            statement.executeQuery()
+            ) {
+
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+
+        }
+        catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Failed to read failed sync count: "
+                            + e.getMessage(),
+                    e
+            );
+        }
+
+        return 0;
+    }
+
+    // =====================================================
+    // SYNCED COUNT
+    // =====================================================
+
+    public static int getSyncedCount() {
+
+        String sql = """
+            SELECT COUNT(*)
+            FROM sync_queue
+            WHERE status = ?
+        """;
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(
+                    1,
+                    SYNCED
+            );
+
+            try (
+                    ResultSet rs =
+                            statement.executeQuery()
+            ) {
+
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+
+        }
+        catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Failed to read synced count: "
+                            + e.getMessage(),
+                    e
+            );
+        }
+
+        return 0;
+    }
+
+    // =====================================================
+    // RESET PROCESSING OPERATIONS
+    //
+    // Useful if the application was closed while syncing.
+    // =====================================================
+
+    public static int resetProcessingOperations() {
+
+        String sql = """
+            UPDATE sync_queue
+            SET
+                status = ?,
+                error_message = 'Reset after interrupted sync'
+            WHERE status = ?
+        """;
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(
+                    1,
+                    PENDING
+            );
+
+            statement.setString(
+                    2,
+                    PROCESSING
+            );
+
+            return statement.executeUpdate();
+
+        }
+        catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Failed to reset processing operations: "
+                            + e.getMessage(),
+                    e
+            );
+        }
+    }
+
+    // =====================================================
+    // DELETE OLD SYNCED OPERATIONS
+    //
+    // We will use this later for database cleanup.
+    // =====================================================
+
+    public static int deleteSyncedOperations(
+            int keepLatest
+    ) {
+
+        if (keepLatest < 0) {
+            keepLatest = 0;
+        }
+
+        String sql = """
+            DELETE FROM sync_queue
+            WHERE status = ?
+              AND id NOT IN (
+                  SELECT id
+                  FROM sync_queue
+                  WHERE status = ?
+                  ORDER BY id DESC
+                  LIMIT ?
+              )
+        """;
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(
+                    1,
+                    SYNCED
+            );
+
+            statement.setString(
+                    2,
+                    SYNCED
+            );
+
+            statement.setInt(
+                    3,
+                    keepLatest
+            );
+
+            return statement.executeUpdate();
+
+        }
+        catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Failed to clean synced operations: "
+                            + e.getMessage(),
+                    e
+            );
+        }
+    }
+
+    // =====================================================
+    // INTERNAL STATUS UPDATE
+    // =====================================================
+
+    private static void executeStatusUpdate(
+            String sql,
+            String status,
+            int id
+    ) {
+
+        try (
+                Connection connection =
+                        Database.connect();
+
+                PreparedStatement statement =
+                        connection.prepareStatement(sql)
+        ) {
+
+            statement.setString(
+                    1,
+                    status
+            );
+
+            statement.setInt(
+                    2,
+                    id
+            );
+
+            statement.executeUpdate();
+
+        }
+        catch (Exception e) {
+
+            throw new RuntimeException(
+                    "Failed to update sync status: "
+                            + e.getMessage(),
+                    e
+            );
+        }
+    }
+}
